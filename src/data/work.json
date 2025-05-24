@@ -1,0 +1,250 @@
+[
+  {
+    "title": "Industrial Asset Management System",
+    "summary": "Developed a web-based asset management application for tracking equipment throughout design and construction phases",
+    "details": [
+      "Built a full-stack solution using Vue on the frontend and Node.js with Express.js on the backend with a MySQL database",
+      "Implemented role-based authentication system controlling access to sensitive equipment data",
+      "Created interfaces for managing equipment specifications, categories, and custom properties",
+      "Developed integration with industry-standard BIM software to synchronize 3D model data",
+      "Improved cross-disciplinary coordination by centralizing equipment information in a single platform"
+    ],
+    "techStack": ["Vue", "Node.js", "Express.js", "MySQL"],
+    "features": ["Role-based Authentication", "BIM Integration", "Equipment Database"],
+    "type": "",
+    "labels": ["Asset Management", "BIM", "Equipment Tracking", "Construction"],
+    "company": "Tesla",
+    "dateFrom": "2022",
+    "dateUntil": "",
+    "url": "",
+    "images": [],
+    "imageFolders": [],
+    "media": [],
+    "github": ""
+  },
+  {
+    "title": "3D Quality Inspection Visualization Tool",
+    "summary": "Created an interactive 3D web application for quality control processes in manufacturing",
+    "details": [
+      "Built a full-stack WebGL-based visualization application using Three.js and React on the frontend and Node.js with Express.js on the backend with a MongoDB database",
+      "Built tools for mapping quality criteria onto 3D product models for visual reference",
+      "Implemented interactive features allowing users to define inspection regions directly on 3D models",
+      "Created classification framework for categorizing defects by type and severity",
+      "Designed data visualization components showing quality metrics in spatial context",
+      "Integrated with computer vision systems for real-time processing of inspection data"
+    ],
+    "techStack": ["Three.js", "React", "Node.js", "Express.js", "MongoDB", "WebGL"],
+    "features": ["3D Visualization", "Defect Classification", "Quality Metrics", "Computer Vision Integration"],
+    "type": "",
+    "labels": ["Quality Control", "3D Visualization", "Manufacturing", "Computer Vision"],
+    "company": "Tesla",
+    "dateFrom": "2023",
+    "dateUntil": "",
+    "url": "",
+    "images": [],
+    "imageFolders": [],
+    "media": [],
+    "github": ""
+  },
+  {
+    "title": "Workflow Management System with 3D Integration",
+    "summary": "Engineered a task management platform with integrated 3D visualization for manufacturing operations",
+    "details": [
+      "Built a full-stack WebGL-based visualization application using Three.js and React on the frontend and Node.js with Express.js on the backend with a MongoDB database",
+      "Developed comprehensive task tracking system with detailed workflow documentation",
+      "Created 3D visualization component allowing tasks to be associated with specific product components",
+      "Implemented multi-modal navigation between task lists and 3D representations",
+      "Designed structured data architecture for documenting complex technical procedures",
+      "Created reporting tools for monitoring progress and quality metrics across operations"
+    ],
+    "techStack": ["Three.js", "React", "Node.js", "Express.js", "MongoDB", "WebGL"],
+    "features": ["Task Tracking", "3D Component Association", "Multi-modal Navigation", "Reporting Tools"],
+    "type": "Software",
+    "labels": ["Workflow Management", "3D Visualization", "Manufacturing", "Task Tracking"],
+    "company": "Tesla",
+    "dateFrom": "2024",
+    "dateUntil": "",
+    "url": "",
+    "images": [],
+    "imageFolders": [],
+    "media": [],
+    "github": ""
+  },
+  {
+    "title": "Interactive Facility Mapping Platform",
+    "summary": "Created a responsive visualization tool for mapping operational data across manufacturing facilities",
+    "details": [
+      "Built an interactive 2D mapping application using React and SVG graphics",
+      "Created layer management system allowing multiple data types to be visualized simultaneously",
+      "Implemented bidirectional navigation between equipment database and map locations",
+      "Built search functionality with multi-parameter filtering for equipment and operational data",
+      "Designed responsive interface with dynamic zooming and contextual information display",
+      "Integrated with manufacturing systems to visualize real-time operational metrics spatially"
+    ],
+    "techStack": ["React", "SVG"],
+    "features": ["Layer Management", "Bidirectional Navigation", "Advanced Filtering", "Responsive Zooming", "Real-time Metrics"],
+    "type": "",
+    "labels": ["Facility Mapping", "2D Visualization", "Manufacturing", "Equipment Tracking"],
+    "company": "Tesla",
+    "dateFrom": "2023",
+    "dateUntil": "",
+    "url": "",
+    "images": [],
+    "imageFolders": [],
+    "media": [],
+    "github": ""
+  },
+  {
+    "title": "Cabin Modules",
+    "summary": "An experimental modular dwelling system with five autonomous functional units that can be reconfigured for different contexts. This passive house prototype operates entirely on solar energy through innovative technologies like Trombe walls and Fresnel lenses, demonstrating a synthesis between transportable architecture and sustainable living.",
+    "details": [
+      "Our Cabin Modules project explores flexibility and self-sufficiency in residential architecture. During the Hungarian Hello Wood Festival, we developed this prototype as an experiment in modular living that adapts to different contexts and user needs. The concept emerged from our earlier work with the Plug-In Social project in Argentina, now translated to a new environment.",
+      "The cabin structure is organized through five independent modules, each with a specific function: storage, dressing, cooking, heating, and relaxation. These wooden modules contain all necessary technology and feature thermal and waterproof insulation. The spaces between modules are enclosed with laminar materials on wooden frames, creating a unified living environment while maintaining the distinct identity of each functional volume.",
+      "We designed the cabin following passive house principles with complete energy autonomy. The heating system utilizes a Trombe wall that captures and stores solar energy efficiently. For cooking, we incorporated Fresnel lenses that harness sunlight, while the communal area features a transparent polycarbonate roof that functions similar to a greenhouse. These elements allow the dwelling to operate completely disconnected from conventional energy networks.",
+      "The construction system combines prefabrication with on-site assembly techniques. This hybrid approach integrates technological precision with artisanal quality. An important characteristic of the prototype is its portability - after use, the skin can be dismantled, the modules compacted, and everything transported to a new location. This solution addresses the tension between temporary and permanent architecture, creating a dwelling that can transform according to changing circumstances while maintaining its essential spatial qualities."
+    ],
+    "techStack": [],
+    "features": ["Passive House Design", "Trombe Wall", "Fresnel Lenses", "Off-grid Operation", "Portability", "Modular Construction", "Prefabricated Elements", "Solar Energy"],
+    "type": "Architecture",
+    "labels": ["Passive House", "Modular Architecture", "Sustainable Design", "Solar Energy", "Off-grid Living", "Experimental Architecture"],
+    "company": "IR arquitectura",
+    "dateFrom": "2018",
+    "dateUntil": "",
+    "url": "https://irarquitectura.com/index.php/work/project/3?lan=en",
+    "images": [],
+    "imageFolders": [],
+    "media": [
+      {"name": "Archello", "url": "https://archello.com/es/project/cabin-modules"},
+      {"name": "Detail", "url": "https://www.detail.de/de_en/passive-house-in-mini-format-modular-building-by-ir-arquitectura-33840?srsltid=AfmBOoqSn_X_ojUTGlo8ZBV_Hf1iPHFuYtph2RlqVpskta1BFN7CaCYh"},
+      {"name": "ArchDaily", "url": "https://www.archdaily.com/906488/cabin-modules-ir-arquitectura?ad_medium=office_landing&ad_name=article"}
+    ],
+    "github": ""
+  },
+  {
+    "title": "Casa ATO",
+    "summary": "A home in San Isidro, Buenos Aires, that aims to dilute its boundaries to be permeable to its environment. Situated in front of the Bajo de San Isidro Ecological Reserve, the design enhances the interaction between human habitat and biological agents, articulating a kind of mutualism with its surroundings.",
+    "details": [
+      "The ATO House, located in San Isidro, Buenos Aires, Argentina, emerged from a unique ecological context. Situated in front of the Bajo de San Isidro Ecological Reserve, the site presented distinctive pre-existing conditions including ancient trees, an olive tree, and the fact that it is one of the few places where turtles from the reserve cross the road to spawn periodically. These natural elements, combined with the lush presence of the reserve itself, provided the opportunity to formulate a project deeply integrated with the surrounding ecosystem in multiple dimensions.",
+      "The house is organized by what we call 'cut substrates,' which interpret both the client's functional needs and those of the natural context. The ground level substrate releases the largest possible proportion of land to preserve the existing soil exchanges and offers semi-covered spaces intimately related to the vegetation and pre-existing swimming pool. The second substrate, positioned at the height of the treetops, houses the domestic functions while optimizing views and air currents. Finally, the fully landscaped roof supports native and edible vegetation that promotes biological exchange powered by birds and insects that transport seeds, effectively extending the boundaries of the ecological reserve onto the architecture.",
+      "The structural system consists of three concrete walls that support the first-floor slab. Above it, three inverted beams with front and back corbels suspend the metal structure that forms the ground floor slab. These three partitions organize the space into four defined functional areas across all floors: a sanitary core, a vertical circulation void, and two deeper hemispheres on the sides parallel to the street. The built volume is set back one meter from the lateral boundaries, becoming independent from its neighbors and allowing continuous air circulation around the entire structure.",
+      "The thermodynamic efficiency of the house is achieved through a series of passive solutions combined with sophisticated renewable resource technologies. The front envelope consists of high-performance carpentry, flowerbeds, and robotic blinds organized in a layered system that offers multiple variables to achieve efficient environmental mediation. A geothermal system harnesses the average temperature of groundwater to regulate internal environments in both summer and winter. Additionally, photovoltaic collectors reduce dependency on the electrical grid. All these systems, along with lighting, security devices, and irrigation, are centralized through home automation to enhance performance and comfort levels."
+    ],
+    "techStack": [],
+    "features": ["Geothermal Energy System", "Photovoltaic Collectors", "Robotic Blinds", "Bioclimatic Design", "Indoor-Outdoor Integration", "Concrete and Metal Hybrid Structure", "Native Plant Landscaping", "Substrates Design Strategy"],
+    "type": "Architecture",
+    "labels": ["Ecological Architecture", "Residential Design", "Smart Home", "Energy Efficient", "Ecosystem Integration", "Biophilic Design", "Renewable Energy", "Sustainable Construction", "Wildlife Friendly", "Environmental Responsive Architecture"],
+    "company": "IR arquitectura",
+    "dateFrom": "2016",
+    "dateUntil": "2020",
+    "url": "https://irarquitectura.com/index.php/work/project/1?lan=en",
+    "images": [],
+    "imageFolders": ["portfolio/work/ato"],
+    "media": [
+      {"name": "ArchDaily", "url": "https://www.archdaily.com/1018863/ato-house-ir-arquitectura?ad_medium=office_landing&ad_name=article"},
+      {"name": "Archello", "url": "https://archello.com/project/casa-ato"},
+      {"name": "Homeworld Design", "url": "https://homeworlddesign.com/ato-house-ir-arquitectura/"},
+      {"name": "Home Adore", "url": "https://homeadore.com/2024/02/16/casa-ato-elevating-eco-friendly-design-in-san-isidro/"},
+      {"name": "Metalocus", "url": "https://www.metalocus.es/es/noticias/diluir-los-limites-para-ser-permeable-al-entorno-casa-ato-por-ir-arquitectura"}
+    ],
+    "github": ""
+  },
+  {
+    "title": "Casa 3X3",
+    "summary": "A residential project in San Isidro, Argentina organized on a grid of nine quadrants over two levels, with a strategic design that responds to the flood level of the site and optimizes sunlight conditions. The house balances social and intimate spaces, creating distinct relationships with exterior gardens while maintaining a consistent structural framework.",
+    "details": [
+      "The 3X3 House is a 210 m² residence located on a lot between party walls in the lower part of San Isidro, Argentina. Two key factors determined its positioning: the flood level of the site, which forced the structure to rise 1.2 meters above street level, and the south-southeast orientation of the front façade, which placed optimal sunlight conditions at the rear of the property. The design also strategically establishes distance from the pedestrian path to ensure privacy while creating a distinctive architectural presence in the neighborhood.",
+      "The home is organized according to a grid of nine equal quadrants superimposed on two levels, with the ground floor dedicated to social functions and the upper floor containing more private spaces. Structurally, this grid manifests through standardized steel profiles that form the primary support system on the ground floor. The central quadrant creates a vertical void that connects both floors and serves as the main entrance, functioning as both circulation core and light well. Adjacent to this void, all bathroom facilities are consolidated in a single quadrant, efficiently centralizing plumbing systems while freeing the remaining hemispheres for flexible social use.",
+      "The ground floor quadrants share identical dimensions but develop distinct characters through their relationships with exterior spaces, enabling residents to appropriate and transform them freely. The front hemisphere connects to a serene, contained garden that mediates the relationship with the urban context, while the rear hemisphere opens to a more dynamic backyard featuring a swimming pool and recreational areas. This design strategy creates diverse spatial experiences within a consistent structural framework, responding to different programmatic needs while maintaining architectural coherence.",
+      "The upper floor leverages the structural grid below to support a masonry wall enclosure that significantly improves thermal efficiency, acoustic conditioning, and privacy for the bedrooms and intimate spaces. The organizational logic of the nine-quadrant grid is maintained at this level, with service areas strategically positioned to optimize the building's mechanical systems. The central void extends upward with a glazed panel that brings natural light to both levels, while a walkway system connects the secondary bedrooms at the front with the master bedroom suite, dressing area, and private terrace at the rear. This arrangement demonstrates how a rigorous organizational strategy can accommodate varied spatial requirements while creating a cohesive architectural experience."
+    ],
+    "techStack": [],
+    "features": ["Nine-quadrant Grid Organization", "Two-level Spatial Hierarchy", "Standardized Structural Profiles", "Vertical Connecting Void", "Differential Garden Relationships", "Masonry Upper Enclosure", "Elevated Design for Flood Protection", "Strategic Sunlight Optimization", "Energy Efficient Design", "Thermal and Acoustic Conditioning", "Logical Bathroom Consolidation", "Indoor-Outdoor Integration"],
+    "type": "Architecture",
+    "labels": ["Residential Design", "Grid Architecture", "Spatial Organization", "Indoor-Outdoor Integration", "Structural Clarity", "Privacy Design", "Environmental Response", "Adaptable Spaces", "Energy Efficient", "Urban Housing", "Party Wall Construction"],
+    "company": "IR arquitectura",
+    "dateFrom": "2017",
+    "dateUntil": "2020",
+    "url": "https://irarquitectura.com/index.php/work/project/2?lan=en",
+    "images": [],
+    "imageFolders": [],
+    "media": [
+      {"name": "ArchDaily", "url": "https://www.archdaily.com/1018864/3x3-house-ir-arquitectura"},
+      {"name": "Divisare", "url": "https://divisare.com/projects/493502-ir-arquitectura-fernando-schapochnik-casa-3x3"},
+      {"name": "Revista Plot", "url": "https://revistaplot.com/casa-3x3/"},
+      {"name": "Home Adore", "url": "https://homeadore.com/2024/02/13/casa-3x3-innovative-home-design-in-san-isidro/"}
+    ],
+    "github": ""
+  },
+  {
+    "title": "Sülzetal Distribution Center Project",
+    "summary": "Served as BIM (Building Information Modeling) specialist and architecture consultant representative for a 97,000m² distribution center in Sülzetal, Germany. Worked to align global e-commerce client high standards with local German regulations, supporting the development of a facility featuring 13,200 meters of high-bay shelving and specialized systems for processing over 100,000 packages daily.",
+    "details": [
+      "Led BIM implementation for a major distribution facility (97,000m²) near Magdeburg, Germany, creating comprehensive digital models that facilitated cross-disciplinary coordination throughout the project lifecycle",
+      "Represented the architecture consultant team, ensuring all design standards and technical specifications met both client high performance requirements and strict German building regulations",
+      "Developed detailed 3D models of specialized storage solutions including 13,200 meters of high-bay shelving systems, enabling precise clash detection and construction documentation",
+      "Collaborated with systems engineers to integrate complex conveyor infrastructure into the BIM model, supporting a facility designed to process more than 100,000 packages during peak operational days",
+      "Liaised between international client teams and local authorities in Landkreis Börde, helping navigate regulatory requirements while maintaining the client's global facility standards"
+    ],
+    "techStack": ["Autodesk Revit", "Dynamo", "AutoCAD", "Autodesk Construction Cloud", "Revizto", "Aconex"],
+    "features": ["Cross-disciplinary BIM Coordination", "Regulatory Compliance Documentation", "Design Standards Integration", "International-Local Standards Alignment"],
+    "type": "Logistics",
+    "labels": ["BIM Coordination", "Architecture Consulting", "Logistics Infrastructure", "Regulatory Compliance", "German Regulations", "International Standards", "Industrial Architecture"],
+    "company": "Hyphen",
+    "dateFrom": "2018",
+    "dateUntil": "2020",
+    "url": "",
+    "images": [],
+    "imageFolders": [],
+    "media": [],
+    "github": ""
+  },
+  {
+    "title": "Espacio Thea",
+    "summary": "Renovation of a 60m² apartment from the 1960s in Barrio Norte, one of the most densely populated areas of Buenos Aires, transforming segmented spaces into an open, flexible environment through the integration of fragmented areas and strategic furniture elements.",
+    "details": [
+      "This apartment from the 60's is located in Barrio Norte, one of the most densely populated zones of Buenos Aires City, responding to particular criteria of high-rise housing in a socio-economic context that has moved its center of gravity. The distribution of spaces, according to the prevailing social protocols, offered a segmented floor plan that needed reinterpretation. The intervention focuses on two overlapping actions: integration and qualification, transforming an outdated spatial arrangement into one that better suits contemporary living patterns.",
+      "In the first phase of the project, we unified fragmentary spaces whose characteristics were obsolete for contemporary use needs. The entrance hall, kitchen, service bedroom, distributor, and living room gave way to a new open space to be qualified. This approach challenged the conventional compartmentalization typical of mid-20th century apartments, creating a more fluid environment that allows for greater flexibility in daily activities and better circulation of both people and natural elements like light and air.",
+      "A furniture device was constituted as a programmatic interface between intimate and public areas of the house, condensing services, technical lines, storage spaces, and equipment in an efficient solution. This custom element plays a crucial role beyond mere storage, acting as an organizing principle that structures the entire apartment while maintaining a clear distinction between social and private realms. The solution demonstrates how architectural hardware can perform multiple functions simultaneously, optimizing the limited space available while enriching the user experience.",
+      "In its final disposition, the furniture device exchanges watertight thick walls for soft surfaces that are maneuverable and translucent, providing mutability and the capacity for management of uses, natural lighting, and cross-ventilation to an amplified space. This transformation represents a shift from rigid, permanent architectural elements to adaptive components that can respond to changing needs and conditions. The result is an apartment that feels significantly more spacious than its modest 60 square meters would suggest, offering its inhabitants the flexibility to reconfigure their environment as needed while maintaining a cohesive aesthetic throughout."
+    ],
+    "techStack": [],
+    "features": ["Spatial Integration", "Custom Furniture Solution", "Translucent Partitions", "Natural Light Optimization", "Cross-Ventilation", "Storage Optimization", "Flexible Living Space", "Residential Transformation"],
+    "type": "Architecture",
+    "labels": ["Apartment Renovation", "Interior Design", "Space Optimization", "Urban Living", "Residential Design", "Adaptive Reuse", "Furniture Design", "Open Plan"],
+    "company": "IR arquitectura",
+    "dateFrom": "2016",
+    "dateUntil": "",
+    "url": "",
+    "images": [],
+    "imageFolders": [],
+    "media": [
+      {"name": "ArchDaily", "url": "https://www.archdaily.com/791218/thea-space-ir-arquitectura"},
+      {"name": "Architizer", "url": "https://architizer.com/projects/espacio-thea/"},
+      {"name": "Divisare", "url": "https://divisare.com/projects/320648-ir-arquitectura-javier-agustin-rojas-espacio-thea"},
+      {"name": "Archello", "url": "https://archello.com/project/espacio-thea"}
+    ],
+    "github": ""
+  },
+  {
+    "title": "Nopassana",
+    "summary": "A contemplative wooden pavilion created as part of the Hello Wood Argentina festival in Ceibas, Argentina. The structure invites visitors to lie in suspended nets while gazing at the sky, generating a space for introspection and connection with the universe within a systematic modular grid of nine quadrants.",
+    "details": [
+      "Nopassana is an architectural installation developed for the Hello Wood Argentina festival, designed to create an intimate habitat for contemplation and connection. The project's concept stems from a philosophical exploration of how humans connect with others through first establishing contact with themselves and the universe. This relationship is compared to crowds gathering to witness a glacier calving – a moment where the infinitely personal and infinitely external become intertwined. Our response was to design a structure that provides physical shelter for this intimate experience, investigating those spaces where solitude is accompanied by the presence of others.",
+      "The pavilion takes the form of a square tower organized into nine equal quadrants, similar to a Sudoku grid. This doubly symmetrical modular plan prioritizes systematic construction, clear understanding of production processes, and resource efficiency. The structure is designed to be built in stages, with the minimum module being a 'corner' that can function independently. When repeated, these corner elements close the structural assembly and define the final form of the piece. This methodical approach to construction allowed students and workshop participants to understand the building process while creating a cohesive architectural statement.",
+      "At the center of the piece, two crossed staircases connect the ground to the upper level. Once at the top, visitors can position themselves in any of the eight perimeter quadrants by walking across a tensioned net that serves as the floor. The vertical enclosure, formed by translucent fabric, slopes gently to offer a resting surface while directing gazes toward the vast sky above. The choice of materials – primarily wood for the structure and translucent textiles for the skin – creates a deliberate contrast between the rigid structural framework and the soft, diffuse boundary that filters light and views.",
+      "The fundamental action proposed by Nopassana is deceptively simple: to throw oneself onto a protective net and gaze at the infinite horizon of the cosmos. This act of surrender within a carefully crafted architectural space creates a unique phenomenological experience that transcends the physical dimensions of the structure. The pavilion functions as both an object of architectural interest and as a mediative device that transforms the relationship between the visitor, the surrounding landscape, and the sky above. The diffuse veiled horizon created by the translucent fabric enveloping the upper level orients views toward the immensity of the sky, encouraging a moment of pause and reflection in our otherwise busy lives."
+    ],
+    "techStack": [],
+    "features": ["Modular Grid Design", "Systematic Construction", "Suspended Net Flooring", "Translucent Fabric Envelope", "Contemplative Space", "Resource Efficiency", "Participatory Construction", "Sky Viewing Platform"],
+    "type": "Architecture",
+    "labels": ["Temporary Pavilion", "Festival Installation", "Contemplative Architecture", "Modular Design", "Participatory Design", "Wooden Structure", "Hello Wood Festival", "Experiential Architecture"],
+    "company": "IR arquitectura",
+    "dateFrom": "2017",
+    "dateUntil": "",
+    "url": "",
+    "images": [],
+    "imageFolders": [],
+    "media": [],
+    "github": ""
+  }
+] 

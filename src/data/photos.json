@@ -1,0 +1,58 @@
+{
+  "photos": [
+    {
+      "id": "1",
+      "src": "https://images.pexels.com/photos/3408744/pexels-photo-3408744.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "alt": "Mountain landscape with lake",
+      "category": "Nature"
+    },
+    {
+      "id": "2",
+      "src": "https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "alt": "City skyline with skyscrapers",
+      "category": "Urban"
+    },
+    {
+      "id": "3",
+      "src": "https://images.pexels.com/photos/1769392/pexels-photo-1769392.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "alt": "Modern architectural building",
+      "category": "Urban"
+    },
+    {
+      "id": "4",
+      "src": "https://images.pexels.com/photos/2245436/pexels-photo-2245436.png?auto=compress&cs=tinysrgb&w=800",
+      "alt": "Tropical beach with palm trees",
+      "category": "Travel"
+    },
+    {
+      "id": "5",
+      "src": "https://images.pexels.com/photos/307008/pexels-photo-307008.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "alt": "People walking in city street",
+      "category": "Urban"
+    },
+    {
+      "id": "6",
+      "src": "https://images.pexels.com/photos/1435904/pexels-photo-1435904.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "alt": "Colorful food arrangement",
+      "category": "Abstract"
+    },
+    {
+      "id": "7",
+      "src": "https://images.pexels.com/photos/247431/pexels-photo-247431.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "alt": "Wildlife deer in forest",
+      "category": "Nature"
+    },
+    {
+      "id": "8",
+      "src": "https://images.pexels.com/photos/16129877/pexels-photo-16129877/free-photo-of-geometric-pattern-on-building-facade.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "alt": "Abstract architectural pattern",
+      "category": "Abstract"
+    },
+    {
+      "id": "9",
+      "src": "https://images.pexels.com/photos/3617500/pexels-photo-3617500.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "alt": "Mountain landscape at sunset",
+      "category": "Nature"
+    }
+  ]
+} 
