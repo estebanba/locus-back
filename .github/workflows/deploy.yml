@@ -111,8 +111,12 @@ jobs:
             rm -f $CURRENT_PATH
             ln -nfs $RELEASE_TO_DEPLOY $CURRENT_PATH
 
-            echo "-----> Reloading application with PM2: ${{ secrets.PM2_APP_NAME }}"
-            ${{ secrets.PM2_COMMAND }} reload ${{ secrets.PM2_APP_NAME }} --update-env
+            echo "-----> Reloading application with PM2 using ecosystem config"
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+            nvm use ${{ secrets.NODE_VERSION }}
+            ${{ secrets.PM2_COMMAND }} reload ${{ secrets.VPS_PROJECT_PATH }}/ecosystem.config.js --update-env
 
             echo "-----> Cleaning up old releases (keeping last 3)"
             cd $RELEASES_PATH
