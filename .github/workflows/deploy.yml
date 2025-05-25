@@ -1,0 +1,112 @@
+name: Deploy Locus Backend to VPS
+
+on:
+  push:
+    branches:
+      - main # Or your primary deployment branch, e.g., master, prod
+    # Paths filter removed, as the entire repository is the locus-back application.
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # No default working-directory, all run steps will execute from the repository root.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ secrets.NODE_VERSION }}
+          # cache: 'npm' # Optional: Caches npm dependencies
+          # cache-dependency-path: package-lock.json # Path for cache key is at the repo root
+
+      - name: Install dependencies
+        # Runs from repo root
+        run: npm ci
+
+      - name: Build application
+        # Runs from repo root
+        run: npm run build
+
+      - name: Prepare deployment package
+        # Runs from repo root
+        run: |
+          mkdir deploy_package # Created in repo root
+          cp -R dist deploy_package/
+          cp package.json deploy_package/
+          cp package-lock.json deploy_package/
+          # Create tarball in the repository root (current directory)
+          tar -czf deploy_package.tar.gz -C deploy_package .
+
+      - name: Create new release directory on VPS & Get Path
+        id: create_release_dir
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          # port: ${{ secrets.VPS_PORT }} # Uncomment if your SSH port is not 22
+          script: |
+            set -e
+            APP_PATH="${{ secrets.VPS_PROJECT_PATH }}"
+            RELEASES_PATH="$APP_PATH/releases"
+            TIMESTAMP=$(date +%Y%m%d%H%M%S)
+            NEW_RELEASE_PATH_ON_SERVER="$RELEASES_PATH/$TIMESTAMP"
+            mkdir -p $NEW_RELEASE_PATH_ON_SERVER
+            echo "Created directory: $NEW_RELEASE_PATH_ON_SERVER"
+            echo "new_release_path=$NEW_RELEASE_PATH_ON_SERVER" >> "$GITHUB_OUTPUT"
+
+      - name: Upload deployment package to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          # port: ${{ secrets.VPS_PORT }}
+          source: "deploy_package.tar.gz" # Source is from repo root
+          target: ${{ steps.create_release_dir.outputs.new_release_path }}
+
+      - name: Deploy new release on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          # port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -e
+            APP_PATH="${{ secrets.VPS_PROJECT_PATH }}"
+            RELEASES_PATH="$APP_PATH/releases"
+            SHARED_PATH="$APP_PATH/shared"
+            CURRENT_PATH="$APP_PATH/current"
+            RELEASE_TO_DEPLOY="${{ steps.create_release_dir.outputs.new_release_path }}"
+
+            echo "-----> Deploying release in $RELEASE_TO_DEPLOY"
+            cd $RELEASE_TO_DEPLOY
+
+            echo "-----> Extracting deployment package"
+            tar -xzf deploy_package.tar.gz -C .
+            rm deploy_package.tar.gz
+
+            echo "-----> Installing production dependencies"
+            ${{ secrets.NVM_NPM_PATH }} install --production --omit=dev --ignore-scripts
+
+            echo "-----> Symlinking shared .env file"
+            ln -nfs $SHARED_PATH/.env .env
+
+            echo "-----> Updating current symlink to $RELEASE_TO_DEPLOY"
+            rm -f $CURRENT_PATH
+            ln -nfs $RELEASE_TO_DEPLOY $CURRENT_PATH
+
+            echo "-----> Reloading application with PM2: ${{ secrets.PM2_APP_NAME }}"
+            ${{ secrets.PM2_COMMAND }} reload ${{ secrets.PM2_APP_NAME }} --update-env
+
+            echo "-----> Cleaning up old releases (keeping last 3)"
+            cd $RELEASES_PATH
+            ls -1dt */ | tail -n +4 | xargs -I {} rm -rf $RELEASES_PATH/{}
+            
+            echo "🚀 Deployment to $RELEASE_TO_DEPLOY successful!" 
