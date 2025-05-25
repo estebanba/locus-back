@@ -96,7 +96,13 @@ jobs:
             rm deploy_package.tar.gz
 
             echo "-----> Installing production dependencies"
-            ${{ secrets.NVM_NPM_PATH }} install --production --omit=dev --ignore-scripts
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+            # Ensure bash_completion is sourced if it exists, as some nvm versions might need it
+            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+            nvm use ${{ secrets.NODE_VERSION }} # Use the version from secrets (e.g., 22.11.0)
+            # Now 'npm' and 'node' from the selected NVM version should be in PATH
+            npm install --production --omit=dev --ignore-scripts
 
             echo "-----> Symlinking shared .env file"
             ln -nfs $SHARED_PATH/.env .env
