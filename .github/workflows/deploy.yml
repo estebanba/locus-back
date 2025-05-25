@@ -42,8 +42,7 @@ jobs:
           # Create tarball in the repository root (current directory)
           tar -czf deploy_package.tar.gz -C deploy_package .
 
-      - name: Create new release directory on VPS & Get Path
-        id: create_release_dir
+      - name: Create new release directory on VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -57,10 +56,9 @@ jobs:
             TIMESTAMP=$(date +%Y%m%d%H%M%S)
             NEW_RELEASE_PATH_ON_SERVER="$RELEASES_PATH/$TIMESTAMP"
             mkdir -p $NEW_RELEASE_PATH_ON_SERVER
-            echo "Created directory: $NEW_RELEASE_PATH_ON_SERVER"
-            echo "new_release_path=$NEW_RELEASE_PATH_ON_SERVER" >> "$GITHUB_OUTPUT"
+            echo "Created directory for release: $NEW_RELEASE_PATH_ON_SERVER"
 
-      - name: Upload deployment package to VPS
+      - name: Upload deployment package to VPS project root
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -68,7 +66,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           # port: ${{ secrets.VPS_PORT }}
           source: "deploy_package.tar.gz" # Source is from repo root
-          target: ${{ steps.create_release_dir.outputs.new_release_path }}
+          target: ${{ secrets.VPS_PROJECT_PATH }} # Upload to project root temporarily
 
       - name: Deploy new release on VPS
         uses: appleboy/ssh-action@v1.0.3
@@ -83,7 +81,12 @@ jobs:
             RELEASES_PATH="$APP_PATH/releases"
             SHARED_PATH="$APP_PATH/shared"
             CURRENT_PATH="$APP_PATH/current"
-            RELEASE_TO_DEPLOY="${{ steps.create_release_dir.outputs.new_release_path }}"
+            
+            # Find the latest release directory (most recently created)
+            RELEASE_TO_DEPLOY=$(ls -1dt $RELEASES_PATH/*/ | head -n 1 | sed 's:/*$::')
+
+            echo "-----> Moving uploaded package deploy_package.tar.gz to $RELEASE_TO_DEPLOY"
+            mv $APP_PATH/deploy_package.tar.gz $RELEASE_TO_DEPLOY/deploy_package.tar.gz
 
             echo "-----> Deploying release in $RELEASE_TO_DEPLOY"
             cd $RELEASE_TO_DEPLOY
@@ -107,6 +110,6 @@ jobs:
 
             echo "-----> Cleaning up old releases (keeping last 3)"
             cd $RELEASES_PATH
-            ls -1dt */ | tail -n +4 | xargs -I {} rm -rf $RELEASES_PATH/{}
+            ls -1dt */ | tail -n +4 | xargs -I {} rm -rf {}
             
             echo "🚀 Deployment to $RELEASE_TO_DEPLOY successful!" 
