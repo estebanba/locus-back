@@ -1,6 +1,6 @@
 [
   {
-    "name": "gigabase",
+    "name": "industrial-asset-management-system",
     "title": "Industrial Asset Management System",
     "summary": "Developed a web-based asset management application for tracking equipment throughout design and construction phases",
     "details": [
@@ -24,7 +24,7 @@
     "github": ""
   },
   {
-    "name": "3dfect",
+    "name": "3d-quality-inspection-visualization-tool",
     "title": "3D Quality Inspection Visualization Tool",
     "summary": "Created an interactive 3D web application for quality control processes in manufacturing",
     "details": [
@@ -49,7 +49,7 @@
     "github": ""
   },
   {
-    "name": "3workd",
+    "name": "workflow-management-system-with-3d-integration",
     "title": "Workflow Management System with 3D Integration",
     "summary": "Engineered a task management platform with integrated 3D visualization for manufacturing operations",
     "details": [
@@ -74,7 +74,7 @@
     "github": ""
   },
   {
-    "name": "gigamap",
+    "name": "interactive-facility-mapping-platform",
     "title": "Interactive Facility Mapping Platform",
     "summary": "Created a responsive visualization tool for mapping operational data across manufacturing facilities",
     "details": [
@@ -183,7 +183,7 @@
     "github": ""
   },
   {
-    "name": "amazon",
+    "name": "sulzetal-distribution-center-project",
     "title": "Sülzetal Distribution Center Project",
     "summary": "Served as BIM (Building Information Modeling) specialist and architecture consultant representative for a 97,000m² distribution center in Sülzetal, Germany. Worked to align global e-commerce client high standards with local German regulations, supporting the development of a facility featuring 13,200 meters of high-bay shelving and specialized systems for processing over 100,000 packages daily.",
     "details": [

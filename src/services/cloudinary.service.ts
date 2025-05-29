@@ -40,8 +40,17 @@ export const getImagesFromFolder = async (folderName: string): Promise<Cloudinar
       console.log(`[CloudinaryService] Found image details for ${folderName}:`, images.length);
       return images;
     } else {
-      console.log(`[CloudinaryService] No resources found for folder: ${folderName}.`);
-      return []; 
+      console.log(`[CloudinaryService] No resources found for folder: ${folderName}. Attempting to create folder.`);
+      try {
+        await cloudinary.api.create_folder(folderName);
+        console.log(`[CloudinaryService] Successfully created folder: ${folderName}`);
+        return []; // Return empty array as the folder was just created
+      } catch (creationError) {
+        console.error(`[CloudinaryService] Failed to create folder ${folderName}:`, creationError);
+        // If folder creation fails, we still return an empty array or re-throw depending on desired behavior.
+        // For now, let's just log and return empty, as the initial search also found nothing.
+        return [];
+      }
     }
   } catch (error) {
     console.error(`[CloudinaryService] Error fetching images from Cloudinary for folder ${folderName}:`, error);
