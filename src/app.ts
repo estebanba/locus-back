@@ -12,7 +12,11 @@ const app: Express = express();
 const port = process.env.PORT || 3001; // Default to 3001 if not specified
 
 // Middleware
-app.use(cors()); // Enable CORS for all routes
+const corsOptions = {
+  origin: 'https://www.estebanbasili.com',
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+app.use(cors(corsOptions)); // Enable CORS for specific origin
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
