@@ -3,15 +3,12 @@ name: Deploy Locus Backend to VPS
 on:
   push:
     branches:
-      - main # Or your primary deployment branch, e.g., master, prod
-    # Paths filter removed, as the entire repository is the locus-back application.
+      - main # Or your primary deployment branch
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
-    # No default working-directory, all run steps will execute from the repository root.
 
     steps:
       - name: Checkout code
@@ -20,26 +17,22 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ secrets.NODE_VERSION }}
-          # cache: 'npm' # Optional: Caches npm dependencies
-          # cache-dependency-path: package-lock.json # Path for cache key is at the repo root
+          node-version: ${{ secrets.NODE_VERSION }} # e.g., 22.11.0
 
       - name: Install dependencies
-        # Runs from repo root
         run: npm ci
 
       - name: Build application
-        # Runs from repo root
         run: npm run build
 
       - name: Prepare deployment package
-        # Runs from repo root
         run: |
-          mkdir deploy_package # Created in repo root
+          mkdir deploy_package
           cp -R dist deploy_package/
           cp package.json deploy_package/
           cp package-lock.json deploy_package/
-          # Create tarball in the repository root (current directory)
+          # If ecosystem.config.js is in your repo root and you want it deployed with each release:
+          # cp ecosystem.config.js deploy_package/
           tar -czf deploy_package.tar.gz -C deploy_package .
 
       - name: Create new release directory on VPS
@@ -48,14 +41,14 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          # port: ${{ secrets.VPS_PORT }} # Uncomment if your SSH port is not 22
+          # port: ${{ secrets.VPS_SSH_PORT }} # Your SSH port if not 22
           script: |
             set -e
-            APP_PATH="${{ secrets.VPS_PROJECT_PATH }}"
+            APP_PATH="${{ secrets.VPS_PROJECT_PATH }}" # e.g., /var/www/locus-backend
             RELEASES_PATH="$APP_PATH/releases"
             TIMESTAMP=$(date +%Y%m%d%H%M%S)
             NEW_RELEASE_PATH_ON_SERVER="$RELEASES_PATH/$TIMESTAMP"
-            mkdir -p $NEW_RELEASE_PATH_ON_SERVER
+            mkdir -p "$NEW_RELEASE_PATH_ON_SERVER" # Quoted path
             echo "Created directory for release: $NEW_RELEASE_PATH_ON_SERVER"
 
       - name: Upload deployment package to VPS project root
@@ -64,8 +57,8 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          # port: ${{ secrets.VPS_PORT }}
-          source: "deploy_package.tar.gz" # Source is from repo root
+          # port: ${{ secrets.VPS_SSH_PORT }}
+          source: "deploy_package.tar.gz"
           target: ${{ secrets.VPS_PROJECT_PATH }} # Upload to project root temporarily
 
       - name: Deploy new release on VPS
@@ -74,65 +67,82 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          # port: ${{ secrets.VPS_PORT }}
+          # port: ${{ secrets.VPS_SSH_PORT }}
           script: |
-            set -e
+            set -e # Exit immediately if a command exits with a non-zero status
             APP_PATH="${{ secrets.VPS_PROJECT_PATH }}"
             RELEASES_PATH="$APP_PATH/releases"
             SHARED_PATH="$APP_PATH/shared"
             CURRENT_PATH="$APP_PATH/current"
+            DEPLOY_PACKAGE_FILENAME="deploy_package.tar.gz" # Consistent naming
             
-            # Find the latest release directory (most recently created)
-            RELEASE_TO_DEPLOY=$(ls -1dt $RELEASES_PATH/*/ | head -n 1 | sed 's:/*$::')
+            RELEASE_TO_DEPLOY=$(ls -1dt "$RELEASES_PATH"/*/ | head -n 1 | sed 's:/*$::')
 
-            echo "-----> Moving uploaded package deploy_package.tar.gz to $RELEASE_TO_DEPLOY"
-            mv $APP_PATH/deploy_package.tar.gz $RELEASE_TO_DEPLOY/deploy_package.tar.gz
+            echo "-----> Moving uploaded package $DEPLOY_PACKAGE_FILENAME to $RELEASE_TO_DEPLOY"
+            mv "$APP_PATH/$DEPLOY_PACKAGE_FILENAME" "$RELEASE_TO_DEPLOY/$DEPLOY_PACKAGE_FILENAME"
 
             echo "-----> Deploying release in $RELEASE_TO_DEPLOY"
-            cd $RELEASE_TO_DEPLOY
+            cd "$RELEASE_TO_DEPLOY"
 
             echo "-----> Extracting deployment package"
-            tar -xzf deploy_package.tar.gz -C .
-            rm deploy_package.tar.gz
+            tar -xzf "$DEPLOY_PACKAGE_FILENAME" -C .
+            rm "$DEPLOY_PACKAGE_FILENAME"
 
             echo "-----> Installing production dependencies"
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-            # Ensure bash_completion is sourced if it exists, as some nvm versions might need it
-            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-            nvm use ${{ secrets.NODE_VERSION }} # Use the version from secrets (e.g., 22.11.0)
-            # Now 'npm' and 'node' from the selected NVM version should be in PATH
-            npm install --production --omit=dev --ignore-scripts
+            export NVM_DIR="$HOME/.nvm" # Assumes NVM is in the home dir of VPS_USER
+            if [ -s "$NVM_DIR/nvm.sh" ]; then
+              \. "$NVM_DIR/nvm.sh"
+              if [ -s "$NVM_DIR/bash_completion" ]; then
+                \. "$NVM_DIR/bash_completion"
+              fi
+              nvm use ${{ secrets.NODE_VERSION }}
+              npm install --production --omit=dev --ignore-scripts
+            else
+              echo "NVM not found at $NVM_DIR. Skipping npm install or relying on global node/npm."
+              # Consider failing the script here if NVM is essential: exit 1
+            fi
+            
+            # === START: Improved .env file creation ===
+            echo "-----> Creating shared .env file in $SHARED_PATH"
+            mkdir -p "$SHARED_PATH" # Ensure shared directory exists
+            
+            tee "$SHARED_PATH/.env" << EOF
+            NODE_ENV=production
+            PORT=${{ secrets.VPS_PORT_NUMBER }}
+            MONGODB_URI='${{ secrets.MONGODB_URI_SECRET }}' # Remove if not used, ensure secret exists if kept
+            JWT_SECRET='${{ secrets.JWT_SECRET_VALUE }}'
+            CLOUDINARY_CLOUD_NAME='${{ secrets.CLOUDINARY_CLOUD_NAME }}'
+            CLOUDINARY_API_KEY='${{ secrets.CLOUDINARY_API_KEY }}'
+            CLOUDINARY_API_SECRET='${{ secrets.CLOUDINARY_API_SECRET }}'
+            FRONTEND_URL='https://www.estebanbasili.com'
+            # Add any other environment variables your application needs here
+EOF
+            
+            echo "-----> Verifying .env file content (first few lines)"
+            head -n 3 "$SHARED_PATH/.env" # Optional: for quick verification
+            # === END: Improved .env file creation ===
+            
+            echo "-----> Symlinking shared .env file into release directory: $RELEASE_TO_DEPLOY/.env"
+            ln -nfs "$SHARED_PATH/.env" ".env" # Creates .env in current dir ($RELEASE_TO_DEPLOY)
 
-            # === START: CLOUDINARY SECRETS ===
-            echo "-----> Ensuring Cloudinary secrets are in shared .env file"
-            mkdir -p $SHARED_PATH # Ensure shared directory exists
-            # Append Cloudinary secrets. These will be duplicated if the script runs multiple times
-            # without clearing the .env file or managing its content more robustly.
-            # For now, this ensures the variables are present.
-            echo "CLOUDINARY_CLOUD_NAME='${{ secrets.CLOUDINARY_CLOUD_NAME }}'" >> $SHARED_PATH/.env
-            echo "CLOUDINARY_API_KEY='${{ secrets.CLOUDINARY_API_KEY }}'" >> $SHARED_PATH/.env
-            echo "CLOUDINARY_API_SECRET='${{ secrets.CLOUDINARY_API_SECRET }}'" >> $SHARED_PATH/.env
-            # Optionally, ensure NODE_ENV=production is present (avoids duplicates)
-            grep -qxF 'NODE_ENV=production' $SHARED_PATH/.env || echo 'NODE_ENV=production' >> $SHARED_PATH/.env
-            # === END ===
-
-            echo "-----> Symlinking shared .env file"
-            ln -nfs $SHARED_PATH/.env .env
-
-            echo "-----> Updating current symlink to $RELEASE_TO_DEPLOY"
-            rm -f $CURRENT_PATH
-            ln -nfs $RELEASE_TO_DEPLOY $CURRENT_PATH
-
-            echo "-----> Reloading application with PM2 using ecosystem config"
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-            nvm use ${{ secrets.NODE_VERSION }}
-            ${{ secrets.PM2_COMMAND }} reload ${{ secrets.VPS_PROJECT_PATH }}/ecosystem.config.js --update-env
-
+            echo "-----> Updating 'current' symlink to $RELEASE_TO_DEPLOY"
+            rm -f "$CURRENT_PATH" # Remove old symlink
+            ln -nfs "$RELEASE_TO_DEPLOY" "$CURRENT_PATH" # Link current to the new release
+            
+            echo "-----> Reloading application with PM2"
+            # NVM should still be sourced. The PM2_COMMAND secret should contain the full path to NVM-managed pm2.
+            # The ecosystem.config.js is expected to be at $APP_PATH/ecosystem.config.js
+            if [ -s "$NVM_DIR/nvm.sh" ]; then # Check NVM again just to be safe for PM2 context
+              nvm use ${{ secrets.NODE_VERSION }} # Ensure correct Node version for PM2 execution
+              ${{ secrets.PM2_COMMAND }} reload "$APP_PATH/ecosystem.config.js" --update-env
+            else
+              echo "NVM not found. PM2 reload might fail or use wrong Node version."
+              # Consider failing if NVM is essential: exit 1
+            fi
+            
             echo "-----> Cleaning up old releases (keeping last 3)"
-            cd $RELEASES_PATH
-            ls -1dt */ | tail -n +4 | xargs -I {} rm -rf {}
+            cd "$RELEASES_PATH"
+            # Ensure we only try to remove directories and handle quoting for xargs
+            ls -1dt "$RELEASES_PATH"/*/ | tail -n +4 | sed 's/.*/"&"/' | xargs -I {} rm -rf {}
             
             echo "🚀 Deployment to $RELEASE_TO_DEPLOY successful!" 
