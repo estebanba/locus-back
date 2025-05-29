@@ -1,12 +1,15 @@
 import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import path from 'path'; // Import path module
 
 // Import routes
 import cloudinaryRoutes from './routes/cloudinary.routes';
 import dataRoutes from './routes/data.routes';
 
-dotenv.config();
+// Configure dotenv to load the .env file from the 'current' subdirectory
+// This assumes PM2's cwd is the parent of 'current' (e.g., /var/www/locus-backend)
+dotenv.config({ path: path.resolve(process.cwd(), 'current', '.env') });
 
 const app: Express = express();
 const port = process.env.PORT || 3001; // Default to 3001 if not specified
