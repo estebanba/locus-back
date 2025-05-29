@@ -104,6 +104,19 @@ jobs:
             # Now 'npm' and 'node' from the selected NVM version should be in PATH
             npm install --production --omit=dev --ignore-scripts
 
+            # === START: CLOUDINARY SECRETS ===
+            echo "-----> Ensuring Cloudinary secrets are in shared .env file"
+            mkdir -p $SHARED_PATH # Ensure shared directory exists
+            # Append Cloudinary secrets. These will be duplicated if the script runs multiple times
+            # without clearing the .env file or managing its content more robustly.
+            # For now, this ensures the variables are present.
+            echo "CLOUDINARY_CLOUD_NAME='${{ secrets.CLOUDINARY_CLOUD_NAME }}'" >> $SHARED_PATH/.env
+            echo "CLOUDINARY_API_KEY='${{ secrets.CLOUDINARY_API_KEY }}'" >> $SHARED_PATH/.env
+            echo "CLOUDINARY_API_SECRET='${{ secrets.CLOUDINARY_API_SECRET }}'" >> $SHARED_PATH/.env
+            # Optionally, ensure NODE_ENV=production is present (avoids duplicates)
+            grep -qxF 'NODE_ENV=production' $SHARED_PATH/.env || echo 'NODE_ENV=production' >> $SHARED_PATH/.env
+            # === END ===
+
             echo "-----> Symlinking shared .env file"
             ln -nfs $SHARED_PATH/.env .env
 
