@@ -14,16 +14,13 @@ export const listImagesInFolder = async (req: Request, res: Response): Promise<v
 
   try {
     console.log(`Controller: Received request for folder: ${folderName}`);
-    const imageUrls = await getImagesFromFolder(folderName);
-    if (imageUrls.length > 0) {
-      res.status(200).json(imageUrls);
-    } else {
-      res.status(404).json({ message: `No images found in folder '${folderName}' or folder does not exist.` });
-    }
+    const imageObjects = await getImagesFromFolder(folderName); // This is CloudinaryResource[]
+    // Always return 200 OK. If no images, imageObjects will be an empty array.
+    res.status(200).json(imageObjects);
   } catch (error) {
     console.error(`Controller: Error fetching images for folder ${folderName}:`, error);
-    // Check if the error is an instance of Error to access its message property safely
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    // Send a 500 Internal Server Error for actual errors from the service
     res.status(500).json({ message: 'Error fetching images from Cloudinary.', error: errorMessage });
   }
 }; 

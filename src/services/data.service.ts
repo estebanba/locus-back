@@ -95,22 +95,41 @@ export const getWorkItemImages = async (workItemTitle: string): Promise<string[]
   const initialImages: string[] = Array.isArray(item.images) ? [...item.images] : [];
   const cloudinaryImageUrls: string[] = [];
 
-  if (item.imageFolders && Array.isArray(item.imageFolders)) {
-    console.log(`[DataService] Item '${item.title}' has imageFolders:`, item.imageFolders);
+  // Use item.imagesPath and item.name if available, otherwise fall back to imageFolders
+  // This function might be evolving or deprecated given new frontend fetching
+  let folderToFetchFrom = '';
+  if (item.imagesPath && item.name) {
+    folderToFetchFrom = item.imagesPath + item.name; 
+  } else if (item.imageFolders && Array.isArray(item.imageFolders) && item.imageFolders.length > 0) {
+    // Fallback to old imageFolders logic if new properties aren't there (should be removed if imageFolders is gone)
+    console.warn(`[DataService] Item '${item.title}' using legacy imageFolders. Consider updating to imagesPath and name.`);
+    folderToFetchFrom = item.imageFolders[0]; // Or iterate if multiple were supported
+  }
+
+  if (folderToFetchFrom && typeof folderToFetchFrom === 'string' && folderToFetchFrom.trim() !== '') {
+    try {
+      console.log(`[DataService] Calling getImagesFromFolder for: ${folderToFetchFrom}`);
+      const imageResources = await getImagesFromFolder(folderToFetchFrom); // Returns CloudinaryResource[]
+      console.log(`[DataService] Cloudinary resources for '${folderToFetchFrom}':`, imageResources.length);
+      // Map CloudinaryResource objects to their secure_url strings
+      const imageUrlStrings = imageResources.map(resource => resource.secure_url);
+      cloudinaryImageUrls.push(...imageUrlStrings);
+    } catch (error) {
+      console.error(`[DataService] Error calling getImagesFromFolder for ${folderToFetchFrom} in item '${item.title}':`, error);
+    }
+  } else if (item.imageFolders && Array.isArray(item.imageFolders)) {
+    // This block is for the old iteration logic if needed, but priority is imagesPath + name
+    console.log(`[DataService] Item '${item.title}' has imageFolders (legacy path):`, item.imageFolders);
     for (const folderPath of item.imageFolders) {
       if (typeof folderPath === 'string' && folderPath.trim() !== '') {
         try {
-          console.log(`[DataService] Calling getImagesFromFolder for: ${folderPath}`);
-          const urls = await getImagesFromFolder(folderPath);
-          console.log(`[DataService] Cloudinary URLs for '${folderPath}':`, urls);
-          cloudinaryImageUrls.push(...urls);
+          console.log(`[DataService] (Legacy) Calling getImagesFromFolder for: ${folderPath}`);
+          const legacyImageResources = await getImagesFromFolder(folderPath);
+          const legacyImageUrlStrings = legacyImageResources.map(resource => resource.secure_url);
+          cloudinaryImageUrls.push(...legacyImageUrlStrings);
         } catch (error) {
-          console.error(`[DataService] Error calling getImagesFromFolder for ${folderPath} in item '${item.title}':`, error);
-          // Decide if a partial failure should throw or return partial data
-          // For now, it continues and might return fewer images
+          console.error(`[DataService] (Legacy) Error calling getImagesFromFolder for ${folderPath} in item '${item.title}':`, error);
         }
-      } else {
-        console.warn(`[DataService] Invalid folderPath entry in imageFolders for item '${item.title}': ${JSON.stringify(folderPath)}. Skipping.`);
       }
     }
   }

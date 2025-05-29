@@ -1,5 +1,6 @@
 [
   {
+    "name": "gigabase",
     "title": "Industrial Asset Management System",
     "summary": "Developed a web-based asset management application for tracking equipment throughout design and construction phases",
     "details": [
@@ -18,11 +19,12 @@
     "dateUntil": "",
     "url": "",
     "images": [],
-    "imageFolders": [],
+    "imagesPath": "portfolio/work/",
     "media": [],
     "github": ""
   },
   {
+    "name": "3dfect",
     "title": "3D Quality Inspection Visualization Tool",
     "summary": "Created an interactive 3D web application for quality control processes in manufacturing",
     "details": [
@@ -42,11 +44,12 @@
     "dateUntil": "",
     "url": "",
     "images": [],
-    "imageFolders": [],
+    "imagesPath": "portfolio/work/",
     "media": [],
     "github": ""
   },
   {
+    "name": "3workd",
     "title": "Workflow Management System with 3D Integration",
     "summary": "Engineered a task management platform with integrated 3D visualization for manufacturing operations",
     "details": [
@@ -66,11 +69,12 @@
     "dateUntil": "",
     "url": "",
     "images": [],
-    "imageFolders": [],
+    "imagesPath": "portfolio/work/",
     "media": [],
     "github": ""
   },
   {
+    "name": "gigamap",
     "title": "Interactive Facility Mapping Platform",
     "summary": "Created a responsive visualization tool for mapping operational data across manufacturing facilities",
     "details": [
@@ -90,11 +94,12 @@
     "dateUntil": "",
     "url": "",
     "images": [],
-    "imageFolders": [],
+    "imagesPath": "portfolio/work/",
     "media": [],
     "github": ""
   },
   {
+    "name": "cabin-modules",
     "title": "Cabin Modules",
     "summary": "An experimental modular dwelling system with five autonomous functional units that can be reconfigured for different contexts. This passive house prototype operates entirely on solar energy through innovative technologies like Trombe walls and Fresnel lenses, demonstrating a synthesis between transportable architecture and sustainable living.",
     "details": [
@@ -112,7 +117,7 @@
     "dateUntil": "",
     "url": "https://irarquitectura.com/index.php/work/project/3?lan=en",
     "images": [],
-    "imageFolders": [],
+    "imagesPath": "portfolio/work/",
     "media": [
       {"name": "Archello", "url": "https://archello.com/es/project/cabin-modules"},
       {"name": "Detail", "url": "https://www.detail.de/de_en/passive-house-in-mini-format-modular-building-by-ir-arquitectura-33840?srsltid=AfmBOoqSn_X_ojUTGlo8ZBV_Hf1iPHFuYtph2RlqVpskta1BFN7CaCYh"},
@@ -121,6 +126,7 @@
     "github": ""
   },
   {
+    "name": "casa-ato",
     "title": "Casa ATO",
     "summary": "A home in San Isidro, Buenos Aires, that aims to dilute its boundaries to be permeable to its environment. Situated in front of the Bajo de San Isidro Ecological Reserve, the design enhances the interaction between human habitat and biological agents, articulating a kind of mutualism with its surroundings.",
     "details": [
@@ -138,7 +144,7 @@
     "dateUntil": "2020",
     "url": "https://irarquitectura.com/index.php/work/project/1?lan=en",
     "images": [],
-    "imageFolders": ["portfolio/work/ato"],
+    "imagesPath": "portfolio/work/",
     "media": [
       {"name": "ArchDaily", "url": "https://www.archdaily.com/1018863/ato-house-ir-arquitectura?ad_medium=office_landing&ad_name=article"},
       {"name": "Archello", "url": "https://archello.com/project/casa-ato"},
@@ -149,6 +155,7 @@
     "github": ""
   },
   {
+    "name": "casa-3x3",
     "title": "Casa 3X3",
     "summary": "A residential project in San Isidro, Argentina organized on a grid of nine quadrants over two levels, with a strategic design that responds to the flood level of the site and optimizes sunlight conditions. The house balances social and intimate spaces, creating distinct relationships with exterior gardens while maintaining a consistent structural framework.",
     "details": [
@@ -166,7 +173,7 @@
     "dateUntil": "2020",
     "url": "https://irarquitectura.com/index.php/work/project/2?lan=en",
     "images": [],
-    "imageFolders": [],
+    "imagesPath": "portfolio/work/",
     "media": [
       {"name": "ArchDaily", "url": "https://www.archdaily.com/1018864/3x3-house-ir-arquitectura"},
       {"name": "Divisare", "url": "https://divisare.com/projects/493502-ir-arquitectura-fernando-schapochnik-casa-3x3"},
@@ -176,6 +183,7 @@
     "github": ""
   },
   {
+    "name": "amazon",
     "title": "Sülzetal Distribution Center Project",
     "summary": "Served as BIM (Building Information Modeling) specialist and architecture consultant representative for a 97,000m² distribution center in Sülzetal, Germany. Worked to align global e-commerce client high standards with local German regulations, supporting the development of a facility featuring 13,200 meters of high-bay shelving and specialized systems for processing over 100,000 packages daily.",
     "details": [
@@ -194,11 +202,12 @@
     "dateUntil": "2020",
     "url": "",
     "images": [],
-    "imageFolders": [],
+    "imagesPath": "portfolio/work/",
     "media": [],
     "github": ""
   },
   {
+    "name": "espacio-thea",
     "title": "Espacio Thea",
     "summary": "Renovation of a 60m² apartment from the 1960s in Barrio Norte, one of the most densely populated areas of Buenos Aires, transforming segmented spaces into an open, flexible environment through the integration of fragmented areas and strategic furniture elements.",
     "details": [
@@ -216,7 +225,7 @@
     "dateUntil": "",
     "url": "",
     "images": [],
-    "imageFolders": [],
+    "imagesPath": "portfolio/work/",
     "media": [
       {"name": "ArchDaily", "url": "https://www.archdaily.com/791218/thea-space-ir-arquitectura"},
       {"name": "Architizer", "url": "https://architizer.com/projects/espacio-thea/"},
@@ -226,6 +235,7 @@
     "github": ""
   },
   {
+    "name": "nopassana",
     "title": "Nopassana",
     "summary": "A contemplative wooden pavilion created as part of the Hello Wood Argentina festival in Ceibas, Argentina. The structure invites visitors to lie in suspended nets while gazing at the sky, generating a space for introspection and connection with the universe within a systematic modular grid of nine quadrants.",
     "details": [
@@ -243,7 +253,7 @@
     "dateUntil": "",
     "url": "",
     "images": [],
-    "imageFolders": [],
+    "imagesPath": "portfolio/work/",
     "media": [],
     "github": ""
   }

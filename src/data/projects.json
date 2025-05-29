@@ -1,25 +1,51 @@
 [
   {
+    "name": "personal-website-v2",
     "title": "Personal Website v2",
-    "summary": "Second version of my personal website, built to showcase work, projects and passions.",
+    "summary": "Full-stack personal portfolio website (v2) showcasing work, projects, and passions, featuring a React frontend and a Node.js backend.",
     "details": [
-      "Designed layout and user interface.",
-      "Developed using React and TypeScript.",
-      "Integrated Shadcn UI components for styling.",
-      "Deployed on Netlify."
+      "Designed overall architecture, layout, and user interface.",
+      "Frontend developed with React, TypeScript, Vite, Shadcn UI, and TailwindCSS. Hosted on Netlify (please confirm).",
+      "Backend API built with Node.js, Express, TypeScript, and MongoDB, providing data for the frontend.",
+      "Backend deployed to a Hetzner VPS, managed with PM2, and served via Nginx reverse proxy with SSL (Certbot).",
+      "Automated backend deployment pipeline implemented using GitHub Actions."
     ],
-    "technologies": ["React", "TypeScript", "TailwindCSS", "Shadcn UI", "Vercel"],
+    "technologies": [
+      "React", 
+      "TypeScript", 
+      "Vite", 
+      "TailwindCSS", 
+      "Shadcn UI", 
+      "Node.js", 
+      "Express", 
+      "MongoDB", 
+      "PM2", 
+      "Nginx", 
+      "Certbot", 
+      "GitHub Actions",
+      "REST API"
+    ],
     "type": "Personal Project",
-    "labels": ["Portfolio", "Web Development", "Frontend"],
+    "labels": [
+      "Portfolio", 
+      "Web Development", 
+      "Frontend", 
+      "Backend", 
+      "Full-stack", 
+      "CI/CD", 
+      "DevOps"
+    ],
     "company": null,
     "dateFrom": "2025",
     "dateUntil": "",
     "url": "https://www.estebanbasili.com/",
     "images": [],
+    "imagesPath": "portfolio/projects/",
     "media": [],
     "github": "https://github.com/estebanba/locus-front"
   },
   {
+    "name": "building-permits-xray",
     "title": "Building Permits X-Ray: Cambridge, MA",
     "summary": "Data Analysis Final Project. Analyzed building permits data to identify trends and patterns in construction activity. Final project done as part of a data analytics bootcamp.",
     "details": [
@@ -35,10 +61,12 @@
     "dateUntil": "",
     "url": "https://public.tableau.com/app/profile/esteban.basili/viz/DA_final_project_17419449525070/Counts",
     "images": [],
+    "imagesPath": "portfolio/projects/",
     "media": [],
     "github": "https://github.com/estebanba/data-bootcamp-final-project"
   },
   {
+    "name": "book-reco",
     "title": "Book Recommendation System",
     "summary": "A book recommendation system that uses unsupervised learning to recommend books to users based on book ratings and publication year.",
     "details": [
@@ -54,8 +82,8 @@
     "dateUntil": "",
     "url": "https://book-reco.streamlit.app/",
     "images": [],
+    "imagesPath": "portfolio/projects/",
     "media": [],
     "github": "https://github.com/estebanba/unsupervised-learning-book-reco"
   }
-  
 ] 

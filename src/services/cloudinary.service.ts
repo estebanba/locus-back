@@ -1,33 +1,55 @@
 import cloudinary from '../config/cloudinary.config';
 
+// Define the expected structure for a Cloudinary resource, similar to frontend's CloudinaryImage
+interface CloudinaryResource {
+  public_id: string;
+  secure_url: string;
+  width?: number;
+  height?: number;
+  format?: string;
+  created_at?: string;
+  // Add other properties if they exist on the resource and you need them
+}
+
 /**
- * Fetches image URLs from a specified folder in Cloudinary.
+ * Fetches image details from a specified folder in Cloudinary.
  * @param folderName The name of the folder in Cloudinary.
- * @returns A promise that resolves to an array of image URLs.
- * @throws Error if there's an issue fetching from Cloudinary or the folder is not found/empty.
+ * @returns A promise that resolves to an array of CloudinaryResource objects.
+ * @throws Error if there's an issue fetching from Cloudinary.
  */
-export const getImagesFromFolder = async (folderName: string): Promise<string[]> => {
+export const getImagesFromFolder = async (folderName: string): Promise<CloudinaryResource[]> => {
   try {
     console.log(`[CloudinaryService] Fetching images for folder: ${folderName}`);
     const result = await cloudinary.search
       .expression(`folder:${folderName} AND resource_type:image`)
-      .max_results(500) // Adjust as needed, max is 500 for search API without cursor
+      .sort_by('public_id', 'desc') // Optional: sort by public_id, created_at, etc.
+      .max_results(500) 
       .execute();
 
-    console.log(`[CloudinaryService] API Result for folder ${folderName}:`, JSON.stringify(result, null, 2));
+    // console.log(`[CloudinaryService] API Result for folder ${folderName}:`, JSON.stringify(result, null, 2));
 
     if (result && result.resources && result.resources.length > 0) {
-      const urls = result.resources.map((resource: { secure_url: string; }) => resource.secure_url);
-      console.log(`[CloudinaryService] Found URLs for ${folderName}:`, urls);
-      return urls;
+      const images: CloudinaryResource[] = result.resources.map((resource: any) => ({
+        public_id: resource.public_id,
+        secure_url: resource.secure_url,
+        width: resource.width,
+        height: resource.height,
+        format: resource.format,
+        created_at: resource.created_at
+      }));
+      console.log(`[CloudinaryService] Found image details for ${folderName}:`, images.length);
+      return images;
     } else {
-      console.log(`[CloudinaryService] No resources found for folder: ${folderName}. Result:`, result);
-      return []; // Return empty array if no resources or result is unexpected
+      console.log(`[CloudinaryService] No resources found for folder: ${folderName}.`);
+      return []; 
     }
   } catch (error) {
     console.error(`[CloudinaryService] Error fetching images from Cloudinary for folder ${folderName}:`, error);
-    // It might be better to throw the error or return a specific error indicator
-    // For now, returning an empty array to avoid breaking the flow, but indicates failure.
-    return []; 
+    // Throw the error to be handled by the controller
+    // This allows the controller to send a more specific error response (e.g., 500)
+    if (error instanceof Error) {
+      throw new Error(`Cloudinary API error: ${error.message}`);
+    }
+    throw new Error('An unknown error occurred while fetching images from Cloudinary.');
   }
 }; 
