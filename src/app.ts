@@ -11,6 +11,14 @@ import dataRoutes from './routes/data.routes';
 // This assumes PM2's cwd is the parent of 'current' (e.g., /var/www/locus-backend)
 dotenv.config({ path: path.resolve(process.cwd(), 'current', '.env') });
 
+// ---- START DEBUGGING: Check Cloudinary Env Vars ----
+console.log('[DEBUG] Dotenv loaded. Checking Cloudinary variables:');
+console.log(`[DEBUG] CLOUDINARY_CLOUD_NAME: ${process.env.CLOUDINARY_CLOUD_NAME}`);
+console.log(`[DEBUG] CLOUDINARY_API_KEY: ${process.env.CLOUDINARY_API_KEY}`);
+console.log(`[DEBUG] CLOUDINARY_API_SECRET (length): ${process.env.CLOUDINARY_API_SECRET ? process.env.CLOUDINARY_API_SECRET.length : 'undefined'}`);
+console.log(`[DEBUG] PORT: ${process.env.PORT}`);
+// ---- END DEBUGGING ----
+
 const app: Express = express();
 const port = process.env.PORT || 3001; // Default to 3001 if not specified
 
