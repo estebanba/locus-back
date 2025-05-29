@@ -11,12 +11,31 @@ dotenv.config();
 const app: Express = express();
 const port = process.env.PORT || 3001; // Default to 3001 if not specified
 
+// Define allowed origins
+const allowedOrigins = [
+  'https://www.estebanbasili.com', // Production frontend
+  process.env.FRONTEND_LOCAL_URL || 'http://localhost:5173' // Local development frontend
+].filter(Boolean) as string[];
+
 // Middleware
 const corsOptions = {
-  origin: 'https://www.estebanbasili.com',
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+  origin: function (
+    origin: string | undefined,
+    callback: (error: Error | null, allow?: boolean) => void
+  ) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    // Or for server-to-server communication if your VITE_API_BASE_URL is the same as backend origin
+    if (!origin || allowedOrigins.includes(origin) || (process.env.NODE_ENV === 'development' && origin === `http://localhost:${port}`)) {
+      callback(null, true);
+    } else {
+      console.error("CORS error: Origin not allowed:", origin, "Allowed origins:", allowedOrigins);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+  credentials: true // If you need to send cookies or authorization headers
 };
-app.use(cors(corsOptions)); // Enable CORS for specific origin
+app.use(cors(corsOptions)); // Enable CORS for specific origins
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
