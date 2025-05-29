@@ -1,14 +1,8 @@
-import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
-import cors from 'cors';
 import path from 'path'; // Import path module
 
-// Import routes
-import cloudinaryRoutes from './routes/cloudinary.routes';
-import dataRoutes from './routes/data.routes';
-
 // Configure dotenv to load the .env file from the 'current' subdirectory
-// This assumes PM2's cwd is the parent of 'current' (e.g., /var/www/locus-backend)
+// THIS MUST BE THE VERY FIRST THING DONE, BEFORE ANY OTHER IMPORTS THAT MIGHT LEAD TO CLOUDINARY_CONFIG
 dotenv.config({ path: path.resolve(process.cwd(), 'current', '.env') });
 
 // ---- START DEBUGGING: Check Cloudinary Env Vars ----
@@ -18,6 +12,13 @@ console.log(`[DEBUG] CLOUDINARY_API_KEY: ${process.env.CLOUDINARY_API_KEY}`);
 console.log(`[DEBUG] CLOUDINARY_API_SECRET (length): ${process.env.CLOUDINARY_API_SECRET ? process.env.CLOUDINARY_API_SECRET.length : 'undefined'}`);
 console.log(`[DEBUG] PORT: ${process.env.PORT}`);
 // ---- END DEBUGGING ----
+
+import express, { Express, Request, Response } from 'express';
+import cors from 'cors';
+
+// Import routes
+import cloudinaryRoutes from './routes/cloudinary.routes';
+import dataRoutes from './routes/data.routes';
 
 const app: Express = express();
 const port = process.env.PORT || 3001; // Default to 3001 if not specified
