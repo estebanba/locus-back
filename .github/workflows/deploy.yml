@@ -106,7 +106,9 @@ jobs:
             echo "-----> Creating shared .env file in $SHARED_PATH"
             mkdir -p "$SHARED_PATH" # Ensure shared directory exists
             
-            tee "$SHARED_PATH/.env" << EOF
+            # Create the .env file from scratch
+            # Using a temporary variable for the heredoc content
+            ENV_CONTENT=$(cat <<EOF
             NODE_ENV=production
             PORT=${{ secrets.VPS_PORT_NUMBER }}
             MONGODB_URI='${{ secrets.MONGODB_URI_SECRET }}' # Remove if not used, ensure secret exists if kept
@@ -116,7 +118,9 @@ jobs:
             CLOUDINARY_API_SECRET='${{ secrets.CLOUDINARY_API_SECRET }}'
             FRONTEND_URL='https://www.estebanbasili.com'
             # Add any other environment variables your application needs here
-EOF
+            EOF
+            )
+            echo "$ENV_CONTENT" > "$SHARED_PATH/.env"
             
             echo "-----> Verifying .env file content (first few lines)"
             head -n 3 "$SHARED_PATH/.env" # Optional: for quick verification
