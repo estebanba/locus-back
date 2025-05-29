@@ -1,17 +1,16 @@
 import { v2 as cloudinary } from 'cloudinary';
-import dotenv from 'dotenv';
+// import dotenv from 'dotenv'; // No longer needed here
 
-dotenv.config(); // Ensure environment variables are loaded
+// dotenv.config(); // REMOVE THIS LINE - dotenv is configured in app.ts
 
 // Configure Cloudinary with credentials from environment variables
-// These variables should be set in your .env file:
-// CLOUDINARY_CLOUD_NAME=your_cloud_name
-// CLOUDINARY_API_KEY=your_api_key
-// CLOUDINARY_API_SECRET=your_api_secret
+// These variables should be set in your .env file and loaded by app.ts
 
+// Optional: The warning can still be useful if you want to keep it,
+// but it will fire based on what app.ts has loaded into process.env.
 if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
   console.warn(
-    'Cloudinary environment variables (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) are not fully set. Cloudinary integration may not work.'
+    '[cloudinary.config.ts] Cloudinary environment variables (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) are not fully set in process.env. Cloudinary integration may not work.'
   );
 }
 
