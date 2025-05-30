@@ -137,8 +137,8 @@ jobs:
             # NVM should still be sourced. The PM2_COMMAND secret should contain the full path to NVM-managed pm2.
             # The ecosystem.config.js is expected to be at $APP_PATH/ecosystem.config.js
             if [ -s "$NVM_DIR/nvm.sh" ]; then # Check NVM again just to be safe for PM2 context
-              nvm use ${{ secrets.NODE_VERSION }} # Ensure correct Node version for PM2 execution
-              ${{ secrets.PM2_COMMAND }} reload "$APP_PATH/ecosystem.config.js" --update-env
+              nvm use ${{ secrets.VPS_NODE_VERSION }} # Ensure correct Node version for PM2 execution
+              ${{ secrets.PM2_COMMAND }} reload locus-back --update-env # Changed to reload by app name
             else
               echo "NVM not found. PM2 reload might fail or use wrong Node version."
               # Consider failing if NVM is essential: exit 1
