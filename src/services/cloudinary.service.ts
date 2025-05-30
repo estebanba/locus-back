@@ -8,6 +8,7 @@ interface CloudinaryResource {
   height?: number;
   format?: string;
   created_at?: string;
+  metadata?: Record<string, any>; // Add metadata field
   // Add other properties if they exist on the resource and you need them
 }
 
@@ -23,10 +24,11 @@ export const getImagesFromFolder = async (folderName: string): Promise<Cloudinar
     const result = await cloudinary.search
       .expression(`folder:${folderName} AND resource_type:image`)
       .sort_by('public_id', 'desc') // Optional: sort by public_id, created_at, etc.
-      .max_results(500) 
+      .max_results(500)
+      .with_field('context') // Request contextual metadata
       .execute();
 
-    // console.log(`[CloudinaryService] API Result for folder ${folderName}:`, JSON.stringify(result, null, 2));
+    console.log(`[CloudinaryService] API Result for folder ${folderName}:`, JSON.stringify(result, null, 2));
 
     if (result && result.resources && result.resources.length > 0) {
       const images: CloudinaryResource[] = result.resources.map((resource: any) => ({
@@ -35,7 +37,8 @@ export const getImagesFromFolder = async (folderName: string): Promise<Cloudinar
         width: resource.width,
         height: resource.height,
         format: resource.format,
-        created_at: resource.created_at
+        created_at: resource.created_at,
+        metadata: resource.context || {} // Include contextual metadata
       }));
       console.log(`[CloudinaryService] Found image details for ${folderName}:`, images.length);
       return images;
