@@ -32,7 +32,10 @@ interface GenericData {
   [key: string]: any;
 }
 
+// !! AGGRESSIVE LOGGING FOR DEBUGGING PATHS !!
+console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Current __dirname: ${__dirname}`); 
 const dataFolderPath = path.join(__dirname, '..', 'data');
+console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Resolved dataFolderPath: ${dataFolderPath}`);
 
 /**
  * Reads and parses a JSON data file from the data directory.
@@ -41,15 +44,23 @@ const dataFolderPath = path.join(__dirname, '..', 'data');
  * @throws Error if the file cannot be read or parsed.
  */
 export const getDataFile = async (fileName: string): Promise<GenericData | WorkData> => {
-  const filePath = path.join(dataFolderPath, fileName);
+  // !! AGGRESSIVE LOGGING FOR DEBUGGING PATHS !!
+  console.log(`[getDataFile] Called for fileName: ${fileName}`);
+  console.log(`[getDataFile] Using __dirname: ${__dirname}`);
+  const currentDataFolderPath = path.join(__dirname, '..', 'data'); // Recalculate for certainty inside function
+  console.log(`[getDataFile] Using dataFolderPath (recalculated): ${currentDataFolderPath}`);
+  
+  const filePath = path.join(currentDataFolderPath, fileName);
+  console.log(`[getDataFile] Attempting to read filePath: ${filePath}`);
+
   try {
     const fileContent = await fs.readFile(filePath, 'utf-8');
     const jsonData = JSON.parse(fileContent);
-    console.log(`Successfully read and parsed ${fileName}`);
+    console.log(`Successfully read and parsed ${fileName} from ${filePath}`);
     return jsonData;
   } catch (error) {
-    console.error(`Error reading or parsing data file ${fileName}:`, error);
-    throw new Error(`Could not load data file: ${fileName}`);
+    console.error(`Error reading or parsing data file ${fileName} from ${filePath}:`, error);
+    throw new Error(`Could not load data file: ${fileName} from path: ${filePath}`);
   }
 };
 
