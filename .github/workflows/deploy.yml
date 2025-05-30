@@ -97,7 +97,6 @@ jobs:
             APP_PATH="${{ env.VPS_PROJECT_PATH }}"
             NVM_NODE_VERSION="${{ env.NODE_VERSION }}"
             PM2_APP_NAME="${{ env.PM2_APP_NAME }}"
-            # Use NVM_DIR_PATH from env, or default to "$HOME/.nvm" if the env var is not set or empty
             NVM_DIR_PATH="${NVM_DIR_PATH_ENV:-"$HOME/.nvm"}" # NVM_DIR_PATH_ENV should be set in GHA `env:` context
 
             RELEASES_PATH="$APP_PATH/releases"
@@ -105,16 +104,14 @@ jobs:
             CURRENT_PATH="$APP_PATH/current"
             DEPLOY_PACKAGE_FILENAME="deploy_package.tar.gz"
 
-            # Ensure the uploaded package exists. appleboy/ssh-action uploads to $HOME by default.
-            if [ ! -f "$HOME/$DEPLOY_PACKAGE_FILENAME" ]; then
-              echo "ERROR: Deployment package $HOME/$DEPLOY_PACKAGE_FILENAME not found."
+            # The "Upload deployment package" step (scp-action) should have placed the package 
+            # at $APP_PATH/$DEPLOY_PACKAGE_FILENAME on the VPS.
+            # We will verify its existence there.
+            if [ ! -f "$APP_PATH/$DEPLOY_PACKAGE_FILENAME" ]; then
+              echo "ERROR: Deployment package $APP_PATH/$DEPLOY_PACKAGE_FILENAME not found after scp."
+              echo "Please check the 'Upload deployment package' step."
               exit 1
             fi
-            
-            mkdir -p "$APP_PATH" # Ensure base app path exists
-            
-            echo "-----> Moving package from $HOME/$DEPLOY_PACKAGE_FILENAME to $APP_PATH/$DEPLOY_PACKAGE_FILENAME"
-            mv "$HOME/$DEPLOY_PACKAGE_FILENAME" "$APP_PATH/$DEPLOY_PACKAGE_FILENAME"
             
             RELEASE_TO_DEPLOY=$(ls -1dt "$RELEASES_PATH"/*/ 2>/dev/null | head -n 1 | sed 's:/*$::')
 
