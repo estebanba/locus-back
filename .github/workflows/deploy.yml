@@ -197,7 +197,7 @@ jobs:
                 exit 1
               fi
               echo "Reloading PM2 with ecosystem file: $APP_PATH/ecosystem.config.js"
-              $NVM_PM2_PATH reload "$APP_PATH/ecosystem.config.js" --update-env
+              $NVM_PM2_PATH startOrRestart "$APP_PATH/ecosystem.config.js" --update-env
             else
               echo "NVM not found at $NVM_DIR. PM2 reload might fail."
               exit 1 # Fail if NVM is critical for PM2
