@@ -141,9 +141,9 @@ jobs:
             echo "-----> Installing production dependencies"
             export NVM_DIR="$NVM_DIR_PATH"
             if [ -s "$NVM_DIR/nvm.sh" ]; then
-              \\. "$NVM_DIR/nvm.sh"
+              . "$NVM_DIR/nvm.sh"
               if [ -s "$NVM_DIR/bash_completion" ]; then
-                \\. "$NVM_DIR/bash_completion"
+                . "$NVM_DIR/bash_completion"
               fi
               
               echo "Using Node version for npm install: $NVM_NODE_VERSION"
@@ -185,7 +185,7 @@ jobs:
             echo "-----> Reloading application with PM2"
             export NVM_DIR="$NVM_DIR_PATH"
             if [ -s "$NVM_DIR/nvm.sh" ]; then
-              \\. "$NVM_DIR/nvm.sh"
+              . "$NVM_DIR/nvm.sh"
               
               echo "Using Node version for PM2: $NVM_NODE_VERSION"
               nvm use "$NVM_NODE_VERSION"
