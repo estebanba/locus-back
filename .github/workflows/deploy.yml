@@ -50,6 +50,22 @@ jobs:
       - name: Build application
         run: npm run build
 
+      - name: Verify build output
+        run: |
+          echo "Checking for dist/data/work.json..."
+          # Create dist/data if it might not exist from build to avoid ls error
+          mkdir -p dist/data 
+          ls -l dist/data/
+          if [ ! -f "dist/data/work.json" ]; then
+            echo "ERROR: dist/data/work.json not found after build!"
+            echo "Listing contents of src/data (if it exists):"
+            ls -l src/data/ || echo "src/data/ not found or ls error."
+            echo "Full contents of dist directory:"
+            ls -R dist
+            exit 1
+          fi
+          echo "dist/data/work.json found successfully after build."
+
       - name: Prepare deployment package
         run: |
           mkdir deploy_package
