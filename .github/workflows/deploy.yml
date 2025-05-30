@@ -76,6 +76,18 @@ jobs:
           # cp ecosystem.config.js deploy_package/
           tar -czf deploy_package.tar.gz -C deploy_package .
 
+      - name: Verify deployment package contents
+        run: |
+          echo "Listing contents of deploy_package.tar.gz:"
+          tar -tvzf deploy_package.tar.gz
+          echo "Checking for dist/data/work.json in deploy_package.tar.gz..."
+          if tar -tvzf deploy_package.tar.gz | grep -q "dist/data/work.json"; then
+            echo "dist/data/work.json found in tarball."
+          else
+            echo "ERROR: dist/data/work.json NOT found in tarball!"
+            exit 1
+          fi
+
       - name: Create new release directory on VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -183,7 +195,7 @@ jobs:
             CLOUDINARY_CLOUD_NAME='${{ env.CLOUDINARY_CLOUD_NAME_SECRET }}'
             CLOUDINARY_API_KEY='${{ env.CLOUDINARY_API_KEY_SECRET }}'
             CLOUDINARY_API_SECRET='${{ env.CLOUDINARY_API_SECRET_VALUE_SECRET }}'
-            FRONTEND_LOCAL_URL='${{ env.FRONTEND_URL_SECRET }}'
+            FRONTEND_URL='${{ env.FRONTEND_URL_SECRET }}'
             EOF
 
             echo "-----> Verifying .env file (first 3 lines from $SHARED_PATH/.env):"
@@ -206,16 +218,38 @@ jobs:
               echo "Using Node version for PM2: $NVM_NODE_VERSION"
               nvm use "$NVM_NODE_VERSION"
               
-              NVM_PM2_PATH=$(dirname $(which node))/pm2 
+              NVM_PM2_PATH=$(dirname $(which node))/pm2
+              ECOSYSTEM_CONFIG_PATH="$APP_PATH/ecosystem.config.js"
               
-              if [ ! -f "$APP_PATH/ecosystem.config.js" ]; then
-                echo "ERROR: PM2 ecosystem file not found at $APP_PATH/ecosystem.config.js"
+              if [ ! -f "$ECOSYSTEM_CONFIG_PATH" ]; then
+                echo "ERROR: PM2 ecosystem file not found at $ECOSYSTEM_CONFIG_PATH"
                 exit 1
               fi
-              echo "Reloading PM2 with ecosystem file: $APP_PATH/ecosystem.config.js"
-              $NVM_PM2_PATH startOrRestart "$APP_PATH/ecosystem.config.js" --update-env
+
+              echo "-----> Managing PM2 application: $PM2_APP_NAME"
+              echo "Current PM2 list before changes:"
+              $NVM_PM2_PATH list || echo "Could not list PM2 processes."
+
+              echo "Attempting to delete PM2 process '$PM2_APP_NAME' if it exists..."
+              $NVM_PM2_PATH delete "$PM2_APP_NAME" || echo "PM2 process '$PM2_APP_NAME' not found or delete failed (this might be normal if not previously running)."
+
+              echo "Starting PM2 process '$PM2_APP_NAME' using ecosystem file: $ECOSYSTEM_CONFIG_PATH"
+              # The ecosystem file's `cwd` should handle the working directory for the app.
+              # Running `pm2 start` from APP_PATH where ecosystem.config.js is located.
+              cd "$APP_PATH"
+              $NVM_PM2_PATH start "$ECOSYSTEM_CONFIG_PATH" --env production --update-env
+              
+              echo "PM2 status after start:"
+              $NVM_PM2_PATH list || echo "Could not list PM2 processes."
+
+              echo "-----> Saving PM2 process list for startup on boot"
+              $NVM_PM2_PATH save
+              
+              echo "-----> Displaying PM2 logs for $PM2_APP_NAME (last 20 lines)"
+              sleep 3 # Give a moment for logs to populate
+              $NVM_PM2_PATH logs "$PM2_APP_NAME" --lines 20 --nostream || echo "Could not retrieve PM2 logs."
             else
-              echo "NVM not found at $NVM_DIR. PM2 reload might fail."
+              echo "NVM not found at $NVM_DIR. PM2 operations will fail."
               exit 1 # Fail if NVM is critical for PM2
             fi
 
