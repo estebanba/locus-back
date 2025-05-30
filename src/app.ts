@@ -1,9 +1,16 @@
 import dotenv from 'dotenv';
 import path from 'path'; // Import path module
 
-// Configure dotenv to load the .env file from the 'current' subdirectory
-// THIS MUST BE THE VERY FIRST THING DONE, BEFORE ANY OTHER IMPORTS THAT MIGHT LEAD TO CLOUDINARY_CONFIG
-dotenv.config({ path: path.resolve(process.cwd(), 'current', '.env') });
+// Configure dotenv to load the .env file
+// In production, load from the 'current' subdirectory
+// In development, load from the project root
+let dotEnvPath;
+if (process.env.NODE_ENV === 'production') {
+  dotEnvPath = path.resolve(process.cwd(), 'current', '.env');
+} else {
+  dotEnvPath = path.resolve(process.cwd(), '.env');
+}
+dotenv.config({ path: dotEnvPath });
 
 // ---- START DEBUGGING: Check Cloudinary Env Vars ----
 // console.log('[DEBUG] Dotenv loaded. Checking Cloudinary variables:');
