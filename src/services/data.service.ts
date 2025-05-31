@@ -32,10 +32,9 @@ interface GenericData {
   [key: string]: any;
 }
 
-// Use absolute paths based on the working directory
-const BASE_PATH = process.cwd(); // This will be /var/www/locus-backend in production
-const dataFolderPath = path.join(BASE_PATH, 'current', 'dist', 'data');
-console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Using BASE_PATH: ${BASE_PATH}`);
+// Use absolute paths based on the current file's location
+console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Current __dirname: ${__dirname}`);
+const dataFolderPath = path.join(__dirname, '..', 'data');
 console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Resolved dataFolderPath: ${dataFolderPath}`);
 
 /**
@@ -47,7 +46,7 @@ console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Resolved dataFolderPath: ${dataFolderPa
 export const getDataFile = async (fileName: string): Promise<GenericData | WorkData> => {
   // !! AGGRESSIVE LOGGING FOR DEBUGGING PATHS !!
   console.log(`[getDataFile] Called for fileName: ${fileName}`);
-  console.log(`[getDataFile] Using BASE_PATH: ${BASE_PATH}`);
+  console.log(`[getDataFile] Current __dirname: ${__dirname}`);
   const filePath = path.join(dataFolderPath, fileName);
   console.log(`[getDataFile] Attempting to read filePath: ${filePath}`);
 
