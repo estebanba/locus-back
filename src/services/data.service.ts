@@ -2,6 +2,11 @@ import fs from 'fs/promises';
 import path from 'path';
 import { getImagesFromFolder } from './cloudinary.service';
 
+// Base path for data files
+const BASE_PATH = process.env.NODE_ENV === 'production' 
+  ? '/var/www/locus-backend/current/dist/data'
+  : path.join(__dirname, '..', 'data');
+
 // Defines the expected structure of an item in the work.json data
 interface WorkItem {
   title: string;
@@ -32,12 +37,6 @@ interface GenericData {
   [key: string]: any;
 }
 
-// Use absolute paths based on the current symlink
-const BASE_PATH = '/var/www/locus-backend';
-const dataFolderPath = path.join(BASE_PATH, 'current', 'dist', 'data');
-console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Using BASE_PATH: ${BASE_PATH}`);
-console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Resolved dataFolderPath: ${dataFolderPath}`);
-
 /**
  * Reads and parses a JSON data file from the data directory.
  * @param fileName The name of the JSON file (e.g., 'projects.json').
@@ -45,17 +44,35 @@ console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Resolved dataFolderPath: ${dataFolderPa
  * @throws Error if the file cannot be read or parsed.
  */
 export const getDataFile = async (fileName: string): Promise<GenericData | WorkData> => {
-  const filePath = path.join(dataFolderPath, fileName);
-  console.log(`[getDataFile] Attempting to read filePath: ${filePath}`);
-
+  const filePath = path.join(BASE_PATH, fileName);
+  console.log(`[getDataFile] Environment: ${process.env.NODE_ENV}`);
+  console.log(`[getDataFile] Base Path: ${BASE_PATH}`);
+  console.log(`[getDataFile] Attempting to read file: ${filePath}`);
+  
   try {
+    // First check if file exists
+    try {
+      await fs.access(filePath);
+      console.log(`[getDataFile] File exists at ${filePath}`);
+    } catch (err) {
+      console.error(`[getDataFile] File does not exist at ${filePath}`);
+      throw new Error(`File not found: ${fileName} at ${filePath}`);
+    }
+
     const fileContent = await fs.readFile(filePath, 'utf-8');
-    const jsonData = JSON.parse(fileContent);
-    console.log(`Successfully read and parsed ${fileName} from ${filePath}`);
-    return jsonData;
+    console.log(`[getDataFile] Successfully read file content from ${filePath}`);
+    
+    try {
+      const jsonData = JSON.parse(fileContent);
+      console.log(`[getDataFile] Successfully parsed JSON from ${fileName}`);
+      return jsonData;
+    } catch (parseError) {
+      console.error(`[getDataFile] Error parsing JSON from ${fileName}:`, parseError);
+      throw new Error(`Invalid JSON in file: ${fileName}`);
+    }
   } catch (error) {
-    console.error(`Error reading or parsing data file ${fileName} from ${filePath}:`, error);
-    throw new Error(`Could not load data file: ${fileName}`);
+    console.error(`[getDataFile] Error processing file ${fileName} from ${filePath}:`, error);
+    throw error;
   }
 };
 

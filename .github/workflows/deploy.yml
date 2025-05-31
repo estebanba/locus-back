@@ -22,7 +22,10 @@ jobs:
       - name: Build
         run: |
           npm run build
-          # Verify data files were copied and show their contents
+          # Ensure data directory exists and copy data files
+          mkdir -p dist/data
+          cp -r src/data/* dist/data/
+          # Verify data files were copied
           echo "Contents of dist/data directory:"
           ls -la dist/data/
           echo "First few lines of work.json:"
@@ -30,9 +33,6 @@ jobs:
 
       - name: Create deployment package
         run: |
-          # Ensure the data directory exists in dist before creating the package
-          mkdir -p dist/data
-          cp -r src/data/* dist/data/
           tar -czf deploy_package.tar.gz dist/ package*.json
 
       - name: Create SSH key
@@ -67,33 +67,40 @@ jobs:
             
             # Create new release directory with timestamp
             RELEASE_DIR=\"releases/\$(date +%Y%m%d%H%M%S)\" &&
-            mkdir -p \"\$RELEASE_DIR/dist\" &&
+            mkdir -p \"\$RELEASE_DIR\" &&
             
-            # Extract files and move them to the release directory
-            tar xzf deploy_package.tar.gz &&
-            cp -r dist/* \"\$RELEASE_DIR/dist/\" &&
-            cp package*.json \"\$RELEASE_DIR/\" &&
+            # Extract files to the release directory
+            tar xzf deploy_package.tar.gz -C \"\$RELEASE_DIR\" &&
             rm -f deploy_package.tar.gz &&
-            rm -rf dist &&
+            
+            # Ensure proper permissions
+            chmod -R 755 \"\$RELEASE_DIR\" &&
             
             # Verify data files in the new release
             echo 'Verifying data files in new release...' &&
             ls -la \"\$RELEASE_DIR/dist/data/\" &&
             
             # Update current symlink
-            ln -nfs \"\$RELEASE_DIR\" current &&
+            rm -f current &&
+            ln -s \"\$RELEASE_DIR\" current &&
             
             # Create .env in the new release
             echo -e \"$ENV_CONTENT\" > \"\$RELEASE_DIR/.env\" &&
             
-            # Install production dependencies in the new release
+            # Install production dependencies
             cd \"\$RELEASE_DIR\" &&
             npm ci --omit=dev &&
             
-            # Stop PM2, delete the old process, and start with the new release
+            # Restart PM2 with the new release
             cd /var/www/locus-backend &&
-            pm2 delete locus-back || true &&
-            sleep 2 &&  # Give PM2 time to fully stop the old process
+            pm2 delete all || true &&
+            pm2 flush &&
             pm2 start ecosystem.config.js --env production --wait-ready &&
             pm2 save
+            
+            # Final verification of data files
+            echo 'Final verification of data files:' &&
+            ls -la current/dist/data/ &&
+            echo 'Content of work.json:' &&
+            head -n 5 current/dist/data/work.json
           " 
