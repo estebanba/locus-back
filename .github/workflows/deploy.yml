@@ -64,12 +64,10 @@ jobs:
             RELEASE_DIR=\"releases/\$(date +%Y%m%d%H%M%S)\" &&
             mkdir -p \"\$RELEASE_DIR\" &&
             
-            # Extract new files into the release directory
-            cd \"\$RELEASE_DIR\" &&
-            tar xzf ../deploy_package.tar.gz &&
-            cd .. &&
-            
-            # Clean up deployment package
+            # Extract files and move them to the release directory
+            tar xzf deploy_package.tar.gz &&
+            mv dist/* \"\$RELEASE_DIR/dist/\" &&
+            mv package*.json \"\$RELEASE_DIR/\" &&
             rm -f deploy_package.tar.gz &&
             
             # Update current symlink
