@@ -90,7 +90,10 @@ jobs:
             cd \"\$RELEASE_DIR\" &&
             npm ci --omit=dev &&
             
-            # Restart PM2 to use the new release
+            # Stop PM2, delete the old process, and start with the new release
             cd /var/www/locus-backend &&
-            pm2 reload all --update-env
+            pm2 delete locus-back || true &&
+            sleep 2 &&  # Give PM2 time to fully stop the old process
+            pm2 start ecosystem.config.js --env production --wait-ready &&
+            pm2 save
           " 
