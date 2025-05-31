@@ -22,6 +22,10 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Create deployment package
+        run: |
+          tar -czf deploy_package.tar.gz dist/ package*.json
+
       - name: Create SSH key
         run: |
           mkdir -p ~/.ssh/
@@ -41,39 +45,26 @@ jobs:
           PORT=${{ secrets.PORT }}\n\
           NODE_ENV=production"
 
+          # Copy deployment package to VPS
+          scp -i ~/.ssh/deploy_key deploy_package.tar.gz ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/var/www/locus-backend/
+
           # Deploy and update environment
           ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "
             export PATH=/home/deploy/.nvm/versions/node/v22.11.0/bin:\$PATH &&
             cd /var/www/locus-backend &&
             
-            # Create new release directory
-            RELEASE_DIR=\"releases/\$(date +%Y%m%d%H%M%S)\" &&
-            mkdir -p \$RELEASE_DIR &&
+            # Backup current .env if it exists
+            [ -f .env ] && cp .env .env.backup || true
             
-            # Ensure the deploy key is available for git
-            if [ ! -f ~/.ssh/id_ed25519 ]; then
-              cp ~/.ssh/authorized_keys ~/.ssh/id_ed25519.pub 2>/dev/null || true
-            fi
-            chmod 600 ~/.ssh/id_ed25519 2>/dev/null || true
+            # Extract new files
+            tar xzf deploy_package.tar.gz &&
+            rm deploy_package.tar.gz &&
             
-            # Add github.com to known_hosts
-            ssh-keyscan github.com >> ~/.ssh/known_hosts
-            
-            # Clone repository into release directory using SSH
-            git clone git@github.com:estebanbasili/locus-back.git \$RELEASE_DIR &&
-            cd \$RELEASE_DIR &&
-            
-            # Create .env file
+            # Update .env
             echo -e \"$ENV_CONTENT\" > .env &&
             
-            # Install dependencies and build
-            npm ci &&
-            npm run build &&
+            # Install production dependencies
             npm ci --omit=dev &&
-            
-            # Update symlinks
-            cd /var/www/locus-backend &&
-            ln -nfs \$RELEASE_DIR current &&
             
             # Restart PM2
             pm2 reload all --update-env
