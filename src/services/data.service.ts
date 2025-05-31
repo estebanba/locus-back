@@ -13,15 +13,24 @@ const getBasePath = async () => {
     return path.join(process.cwd(), 'src', 'data');
   }
 
-  // In production, try the configured path first
-  const prodPath = '/var/www/locus-backend/dist/data';
-  try {
-    await fs.access(prodPath);
-    return prodPath;
-  } catch {
-    // Fall back to local dist/data if production path is not accessible
-    return path.join(process.cwd(), 'dist', 'data');
+  // In production, try paths in order:
+  const prodPaths = [
+    '/var/www/locus-backend/dist/data',           // New direct path
+    path.join(process.cwd(), 'dist', 'data'),     // Fallback to local dist/data
+  ];
+
+  for (const prodPath of prodPaths) {
+    try {
+      await fs.access(prodPath);
+      console.log(`[DataService] Found valid data path: ${prodPath}`);
+      return prodPath;
+    } catch (err) {
+      console.log(`[DataService] Path ${prodPath} not accessible, trying next...`);
+    }
   }
+
+  // If no paths work, throw error
+  throw new Error('Could not find valid data directory in production');
 };
 
 // Initialize BASE_PATH
@@ -29,11 +38,16 @@ let BASE_PATH = '';
 
 // Function to initialize the service
 export const initializeDataService = async () => {
-  BASE_PATH = await getBasePath();
-  console.log(`[DataService] Environment: ${process.env.NODE_ENV}`);
-  console.log(`[DataService] Running with ts-node: ${isRunningWithTsNode}`);
-  console.log(`[DataService] Current working directory: ${process.cwd()}`);
-  console.log(`[DataService] Using BASE_PATH: ${BASE_PATH}`);
+  try {
+    BASE_PATH = await getBasePath();
+    console.log(`[DataService] Environment: ${process.env.NODE_ENV}`);
+    console.log(`[DataService] Running with ts-node: ${isRunningWithTsNode}`);
+    console.log(`[DataService] Current working directory: ${process.cwd()}`);
+    console.log(`[DataService] Using BASE_PATH: ${BASE_PATH}`);
+  } catch (error) {
+    console.error('[DataService] Failed to initialize data service:', error);
+    throw error;
+  }
 };
 
 // Call initialize immediately
