@@ -62,6 +62,11 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use('/api/cloudinary', cloudinaryRoutes);
 app.use('/api/data', dataRoutes);
 
+// Health check endpoint
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.json({ status: 'ok' });
+});
+
 // Basic Route
 app.get('/', (req: Request, res: Response) => {
   res.send('Locus Backend is running!');
