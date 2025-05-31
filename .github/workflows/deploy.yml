@@ -22,12 +22,17 @@ jobs:
       - name: Build
         run: |
           npm run build
-          # Verify data files were copied
+          # Verify data files were copied and show their contents
+          echo "Contents of dist/data directory:"
           ls -la dist/data/
-          cat dist/data/work.json | head -n 1
+          echo "First few lines of work.json:"
+          cat dist/data/work.json | head -n 5
 
       - name: Create deployment package
         run: |
+          # Ensure the data directory exists in dist before creating the package
+          mkdir -p dist/data
+          cp -r src/data/* dist/data/
           tar -czf deploy_package.tar.gz dist/ package*.json
 
       - name: Create SSH key
@@ -71,6 +76,10 @@ jobs:
             rm -f deploy_package.tar.gz &&
             rm -rf dist &&
             
+            # Verify data files in the new release
+            echo 'Verifying data files in new release...' &&
+            ls -la \"\$RELEASE_DIR/dist/data/\" &&
+            
             # Update current symlink
             ln -nfs \"\$RELEASE_DIR\" current &&
             
@@ -80,10 +89,6 @@ jobs:
             # Install production dependencies in the new release
             cd \"\$RELEASE_DIR\" &&
             npm ci --omit=dev &&
-            
-            # Verify data files are present
-            echo 'Checking data files in new release...' &&
-            ls -la dist/data/ &&
             
             # Restart PM2 to use the new release
             cd /var/www/locus-backend &&
