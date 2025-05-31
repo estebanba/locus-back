@@ -45,12 +45,27 @@ jobs:
           ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "
             export PATH=/home/deploy/.nvm/versions/node/v22.11.0/bin:\$PATH &&
             cd /var/www/locus-backend &&
-            echo 'Fetching latest changes and resetting local branch...' &&
-            git fetch origin &&
-            git reset --hard origin/main &&
+            
+            # Create new release directory
+            RELEASE_DIR=\"releases/\$(date +%Y%m%d%H%M%S)\" &&
+            mkdir -p \$RELEASE_DIR &&
+            
+            # Clone repository into release directory
+            git clone https://github.com/estebanbasili/locus-back.git \$RELEASE_DIR &&
+            cd \$RELEASE_DIR &&
+            
+            # Create .env file
             echo -e \"$ENV_CONTENT\" > .env &&
+            
+            # Install dependencies and build
             npm ci &&
             npm run build &&
             npm ci --omit=dev &&
+            
+            # Update symlinks
+            cd /var/www/locus-backend &&
+            ln -nfs \$RELEASE_DIR current &&
+            
+            # Restart PM2
             pm2 reload all --update-env
           " 
