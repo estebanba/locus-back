@@ -62,13 +62,14 @@ jobs:
             
             # Create new release directory with timestamp
             RELEASE_DIR=\"releases/\$(date +%Y%m%d%H%M%S)\" &&
-            mkdir -p \"\$RELEASE_DIR\" &&
+            mkdir -p \"\$RELEASE_DIR/dist\" &&
             
             # Extract files and move them to the release directory
             tar xzf deploy_package.tar.gz &&
-            mv dist/* \"\$RELEASE_DIR/dist/\" &&
-            mv package*.json \"\$RELEASE_DIR/\" &&
+            cp -r dist/* \"\$RELEASE_DIR/dist/\" &&
+            cp package*.json \"\$RELEASE_DIR/\" &&
             rm -f deploy_package.tar.gz &&
+            rm -rf dist &&
             
             # Update current symlink
             ln -nfs \"\$RELEASE_DIR\" current &&
