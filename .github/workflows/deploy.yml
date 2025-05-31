@@ -14,40 +14,49 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '22.11.0'
+        node-version: ${{ secrets.NODE_VERSION }}
         
-    - name: Install SSH Key
-      uses: shimataro/ssh-key-action@v2
-      with:
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-        if_key_exists: replace
+    - name: Create SSH key
+      run: |
+        mkdir -p ~/.ssh/
+        echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
         
     - name: Deploy to VPS
       env:
-        DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-        DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
         CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
         CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
         CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
-        PORT: 7001
+        PORT: ${{ secrets.PORT }}
+        VPS_PROJECT_PATH: ${{ secrets.VPS_PROJECT_PATH }}
+        PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
+        PM2_COMMAND: ${{ secrets.PM2_COMMAND }}
+        NVM_NODE_PATH: ${{ secrets.NVM_NODE_PATH }}
+        NVM_NPM_PATH: ${{ secrets.NVM_NPM_PATH }}
+        NVM_PM2_PATH: ${{ secrets.NVM_PM2_PATH }}
       run: |
         # Create .env file content
         ENV_CONTENT="CLOUDINARY_CLOUD_NAME=\"${CLOUDINARY_CLOUD_NAME}\"\n\
         CLOUDINARY_API_KEY=\"${CLOUDINARY_API_KEY}\"\n\
         CLOUDINARY_API_SECRET=\"${CLOUDINARY_API_SECRET}\"\n\
         PORT=${PORT}\n\
-        NODE_ENV=production"
+        NODE_ENV=production\n\
+        FRONTEND_URL=\"${FRONTEND_URL}\"\n\
+        FRONTEND_DEV_URL=\"${FRONTEND_DEV_URL}\"\n\
+        JWT_SECRET=\"${JWT_SECRET}\""
         
         # Deploy and update environment
-        ssh -i ~/.ssh/id_rsa $DEPLOY_USER@$DEPLOY_HOST "
-          export PATH=/home/deploy/.nvm/versions/node/v22.11.0/bin:\$PATH &&
+        ssh -i ~/.ssh/id_rsa $VPS_USER@$VPS_HOST "
+          export PATH=${NVM_NODE_PATH}:${NVM_NPM_PATH}:${NVM_PM2_PATH}:\$PATH &&
           
           # Create directory if it doesn't exist
-          sudo mkdir -p /var/www/locus-back &&
-          sudo chown deploy:deploy /var/www/locus-back &&
+          sudo mkdir -p ${VPS_PROJECT_PATH} &&
+          sudo chown ${VPS_USER}:${VPS_USER} ${VPS_PROJECT_PATH} &&
           
-          cd /var/www/locus-back &&
+          cd ${VPS_PROJECT_PATH} &&
           
           # Initialize git repository if needed
           if [ ! -d .git ]; then
@@ -75,13 +84,13 @@ jobs:
           chmod 644 .env &&
           
           # Start/Reload PM2
-          pm2 describe locus-back > /dev/null
+          ${PM2_COMMAND} describe ${PM2_APP_NAME} > /dev/null
           if [ \$? -eq 0 ]; then
             # App exists, reload it
-            pm2 reload locus-back --update-env
+            ${PM2_COMMAND} reload ${PM2_APP_NAME} --update-env
           else
             # App doesn't exist, start it
-            pm2 start ecosystem.config.js
-            pm2 save
+            ${PM2_COMMAND} start ecosystem.config.js
+            ${PM2_COMMAND} save
           fi
         " 
