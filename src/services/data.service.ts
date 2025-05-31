@@ -32,9 +32,10 @@ interface GenericData {
   [key: string]: any;
 }
 
-// !! AGGRESSIVE LOGGING FOR DEBUGGING PATHS !!
-console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Current __dirname: ${__dirname}`); 
-const dataFolderPath = path.join(__dirname, '..', 'data');
+// Use absolute paths based on the working directory
+const BASE_PATH = process.cwd(); // This will be /var/www/locus-backend in production
+const dataFolderPath = path.join(BASE_PATH, 'current', 'dist', 'data');
+console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Using BASE_PATH: ${BASE_PATH}`);
 console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Resolved dataFolderPath: ${dataFolderPath}`);
 
 /**
@@ -46,11 +47,8 @@ console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Resolved dataFolderPath: ${dataFolderPa
 export const getDataFile = async (fileName: string): Promise<GenericData | WorkData> => {
   // !! AGGRESSIVE LOGGING FOR DEBUGGING PATHS !!
   console.log(`[getDataFile] Called for fileName: ${fileName}`);
-  console.log(`[getDataFile] Using __dirname: ${__dirname}`);
-  const currentDataFolderPath = path.join(__dirname, '..', 'data'); // Recalculate for certainty inside function
-  console.log(`[getDataFile] Using dataFolderPath (recalculated): ${currentDataFolderPath}`);
-  
-  const filePath = path.join(currentDataFolderPath, fileName);
+  console.log(`[getDataFile] Using BASE_PATH: ${BASE_PATH}`);
+  const filePath = path.join(dataFolderPath, fileName);
   console.log(`[getDataFile] Attempting to read filePath: ${filePath}`);
 
   try {
@@ -60,7 +58,7 @@ export const getDataFile = async (fileName: string): Promise<GenericData | WorkD
     return jsonData;
   } catch (error) {
     console.error(`Error reading or parsing data file ${fileName} from ${filePath}:`, error);
-    throw new Error(`Could not load data file: ${fileName} from path: ${filePath}`);
+    throw new Error(`Could not load data file: ${fileName}`);
   }
 };
 

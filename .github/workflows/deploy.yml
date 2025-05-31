@@ -60,29 +60,31 @@ jobs:
             # Backup current .env if it exists
             [ -f .env ] && cp .env .env.backup || true
             
-            # Clean up old files (keep node_modules)
-            rm -rf dist/ package*.json &&
+            # Create new release directory with timestamp
+            RELEASE_DIR=\"releases/\$(date +%Y%m%d%H%M%S)\" &&
+            mkdir -p \"\$RELEASE_DIR\" &&
             
-            # Extract new files
-            tar xzf deploy_package.tar.gz &&
+            # Extract new files into the release directory
+            cd \"\$RELEASE_DIR\" &&
+            tar xzf ../../deploy_package.tar.gz &&
+            cd .. &&
             rm deploy_package.tar.gz &&
             
-            # Install ALL dependencies (including dev) temporarily
-            npm ci &&
+            # Update current symlink
+            ln -nfs \"\$RELEASE_DIR\" current &&
             
-            # Run the copy-data script again to ensure data files are in place
-            npm run copy-data &&
+            # Create .env in the new release
+            echo -e \"$ENV_CONTENT\" > \"\$RELEASE_DIR/.env\" &&
             
-            # Now remove dev dependencies
+            # Install production dependencies in the new release
+            cd \"\$RELEASE_DIR\" &&
             npm ci --omit=dev &&
             
-            # Update .env
-            echo -e \"$ENV_CONTENT\" > .env &&
-            
             # Verify data files are present
-            echo 'Checking data files...' &&
+            echo 'Checking data files in new release...' &&
             ls -la dist/data/ &&
             
-            # Restart PM2
+            # Restart PM2 to use the new release
+            cd /var/www/locus-backend &&
             pm2 reload all --update-env
           " 
