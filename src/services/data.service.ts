@@ -2,9 +2,9 @@ import fs from 'fs/promises';
 import path from 'path';
 import { getImagesFromFolder } from './cloudinary.service';
 
-// Base path for data files
+// Base path for data files - simplified to use direct paths
 const BASE_PATH = process.env.NODE_ENV === 'production' 
-  ? '/var/www/locus-backend/current/dist/data'
+  ? '/var/www/locus-backend/dist/data'
   : path.join(__dirname, '..', 'data');
 
 // Defines the expected structure of an item in the work.json data

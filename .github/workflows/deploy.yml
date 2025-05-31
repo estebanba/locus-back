@@ -73,10 +73,9 @@ jobs:
 
             echo 'Creating required directories...'
             mkdir -p logs
-            mkdir -p dist/data
 
             echo 'Cleaning up old files...'
-            rm -rf dist
+            rm -rf dist releases current
             rm -f package*.json ecosystem.config.js
 
             echo 'Extracting new files...'
