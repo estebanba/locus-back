@@ -22,9 +22,9 @@ jobs:
       - name: Build
         run: |
           npm run build
-          # Ensure data directory exists and copy data files
-          mkdir -p dist/data
-          cp -r src/data/* dist/data/
+          # Verify data files were copied
+          ls -la dist/data/
+          cat dist/data/work.json | head -n 1
 
       - name: Create deployment package
         run: |
@@ -67,16 +67,21 @@ jobs:
             tar xzf deploy_package.tar.gz &&
             rm deploy_package.tar.gz &&
             
-            # Ensure data directory exists and has correct permissions
-            mkdir -p dist/data &&
-            chmod 755 dist/data &&
-            chmod 644 dist/data/*.json 2>/dev/null || true &&
+            # Install ALL dependencies (including dev) temporarily
+            npm ci &&
+            
+            # Run the copy-data script again to ensure data files are in place
+            npm run copy-data &&
+            
+            # Now remove dev dependencies
+            npm ci --omit=dev &&
             
             # Update .env
             echo -e \"$ENV_CONTENT\" > .env &&
             
-            # Install production dependencies
-            npm ci --omit=dev &&
+            # Verify data files are present
+            echo 'Checking data files...' &&
+            ls -la dist/data/ &&
             
             # Restart PM2
             pm2 reload all --update-env
