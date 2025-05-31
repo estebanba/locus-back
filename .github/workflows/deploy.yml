@@ -77,20 +77,23 @@ jobs:
           # Setup environment
           export PATH=${NVM_NODE_PATH}:${NVM_NPM_PATH}:${NVM_PM2_PATH}:\$PATH &&
           
-          # Create directory if it doesn't exist (using sudo with -n flag)
-          sudo -n mkdir -p ${VPS_PROJECT_PATH} || mkdir -p ${VPS_PROJECT_PATH} &&
-          sudo -n chown ${VPS_USER}:${VPS_USER} ${VPS_PROJECT_PATH} || true &&
+          # Create directory without sudo
+          mkdir -p ${VPS_PROJECT_PATH} &&
           
           cd ${VPS_PROJECT_PATH} &&
           
           # Initialize git repository if needed
           if [ ! -d .git ]; then
             git init &&
-            git remote add origin https://github.com/estebanbasili/locus-back.git
+            git config --global --add safe.directory ${VPS_PROJECT_PATH} &&
+            git remote add origin git@github.com:estebanbasili/locus-back.git
           fi &&
           
+          # Ensure we're on main branch
+          git checkout -B main &&
+          
           echo 'Fetching latest changes and resetting local branch...' &&
-          git fetch origin &&
+          git fetch origin main &&
           git reset --hard origin/main &&
           
           # Create necessary directories
