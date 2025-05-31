@@ -28,7 +28,7 @@ import cloudinaryRoutes from './routes/cloudinary.routes';
 import dataRoutes from './routes/data.routes';
 
 const app: Express = express();
-const port = process.env.PORT || 3001; // Default to 3001 if not specified
+const port = Number(process.env.PORT) || 7001; // Ensure port is a number
 
 // Define allowed origins
 const allowedOrigins = [
@@ -68,8 +68,8 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // Start the server
-app.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`[server]: Server is running at http://0.0.0.0:${port}`);
 });
 
 export default app; 
