@@ -32,9 +32,10 @@ interface GenericData {
   [key: string]: any;
 }
 
-// Use absolute paths based on the current file's location
-console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Current __dirname: ${__dirname}`);
-const dataFolderPath = path.join(__dirname, '..', 'data');
+// Use absolute paths based on the current symlink
+const BASE_PATH = '/var/www/locus-backend';
+const dataFolderPath = path.join(BASE_PATH, 'current', 'dist', 'data');
+console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Using BASE_PATH: ${BASE_PATH}`);
 console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Resolved dataFolderPath: ${dataFolderPath}`);
 
 /**
@@ -44,9 +45,6 @@ console.log(`[DATA_SERVICE_TS_TOP_LEVEL] Resolved dataFolderPath: ${dataFolderPa
  * @throws Error if the file cannot be read or parsed.
  */
 export const getDataFile = async (fileName: string): Promise<GenericData | WorkData> => {
-  // !! AGGRESSIVE LOGGING FOR DEBUGGING PATHS !!
-  console.log(`[getDataFile] Called for fileName: ${fileName}`);
-  console.log(`[getDataFile] Current __dirname: ${__dirname}`);
   const filePath = path.join(dataFolderPath, fileName);
   console.log(`[getDataFile] Attempting to read filePath: ${filePath}`);
 
