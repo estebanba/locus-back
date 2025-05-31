@@ -1,96 +1,87 @@
-name: Deploy to Hetzner
+name: Deploy to VPS
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Create SSH key
-        run: |
-          mkdir -p ~/.ssh/
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-
-      - name: Add Known Hosts
-        run: |
-          echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
-
-      - name: Deploy to VPS
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
-          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
-          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
-          PORT: 7001
-        run: |
-          # Create .env file content
-          ENV_CONTENT="CLOUDINARY_CLOUD_NAME=\"${CLOUDINARY_CLOUD_NAME}\"\n\
-          CLOUDINARY_API_KEY=\"${CLOUDINARY_API_KEY}\"\n\
-          CLOUDINARY_API_SECRET=\"${CLOUDINARY_API_SECRET}\"\n\
-          PORT=${PORT}\n\
-          NODE_ENV=production"
-
-          # Deploy and update environment
-          ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST "
-            export PATH=/home/deploy/.nvm/versions/node/v22.11.0/bin:\$PATH &&
-            
-            # Create directory if it doesn't exist
-            sudo mkdir -p /var/www/locus-back &&
-            sudo chown deploy:deploy /var/www/locus-back &&
-            
-            cd /var/www/locus-back &&
-            
-            # Initialize git repository if needed
-            if [ ! -d .git ]; then
-              git init &&
-              git remote add origin https://github.com/yourusername/locus-back.git
-            fi &&
-            
-            echo 'Fetching latest changes and resetting local branch...' &&
-            git fetch origin &&
-            git reset --hard origin/main &&
-            
-            # Create necessary directories
-            mkdir -p logs dist/data &&
-            
-            echo -e \"$ENV_CONTENT\" > .env &&
-            npm ci &&
-            npm run build &&
-            npm ci --omit=dev &&
-            
-            # Copy data files
-            cp -r src/data/* dist/data/ &&
-            
-            # Set correct permissions
-            chmod -R 755 dist/data &&
-            chmod 644 .env &&
-            
-            # Start/Reload PM2
-            pm2 describe locus-back > /dev/null
-            if [ $? -eq 0 ]; then
-              # App exists, reload it
-              pm2 reload locus-back --update-env
-            else
-              # App doesn't exist, start it
-              pm2 start ecosystem.config.js
-              pm2 save
-            fi
-          " 
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '22.11.0'
+        
+    - name: Install SSH Key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+        if_key_exists: replace
+        
+    - name: Deploy to VPS
+      env:
+        DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+        CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+        CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+        PORT: 7001
+      run: |
+        # Create .env file content
+        ENV_CONTENT="CLOUDINARY_CLOUD_NAME=\"${CLOUDINARY_CLOUD_NAME}\"\n\
+        CLOUDINARY_API_KEY=\"${CLOUDINARY_API_KEY}\"\n\
+        CLOUDINARY_API_SECRET=\"${CLOUDINARY_API_SECRET}\"\n\
+        PORT=${PORT}\n\
+        NODE_ENV=production"
+        
+        # Deploy and update environment
+        ssh -i ~/.ssh/id_rsa $DEPLOY_USER@$DEPLOY_HOST "
+          export PATH=/home/deploy/.nvm/versions/node/v22.11.0/bin:\$PATH &&
+          
+          # Create directory if it doesn't exist
+          sudo mkdir -p /var/www/locus-back &&
+          sudo chown deploy:deploy /var/www/locus-back &&
+          
+          cd /var/www/locus-back &&
+          
+          # Initialize git repository if needed
+          if [ ! -d .git ]; then
+            git init &&
+            git remote add origin https://github.com/estebanbasili/locus-back.git
+          fi &&
+          
+          echo 'Fetching latest changes and resetting local branch...' &&
+          git fetch origin &&
+          git reset --hard origin/main &&
+          
+          # Create necessary directories
+          mkdir -p logs dist/data &&
+          
+          echo -e \"$ENV_CONTENT\" > .env &&
+          npm ci &&
+          npm run build &&
+          npm ci --omit=dev &&
+          
+          # Copy data files
+          cp -r src/data/* dist/data/ &&
+          
+          # Set correct permissions
+          chmod -R 755 dist/data &&
+          chmod 644 .env &&
+          
+          # Start/Reload PM2
+          pm2 describe locus-back > /dev/null
+          if [ \$? -eq 0 ]; then
+            # App exists, reload it
+            pm2 reload locus-back --update-env
+          else
+            # App doesn't exist, start it
+            pm2 start ecosystem.config.js
+            pm2 save
+          fi
+        " 
