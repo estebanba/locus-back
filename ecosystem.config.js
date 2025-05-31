@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "locus-back",
-      script: "/var/www/locus-back/dist/server.js",
+      script: "/var/www/locus-back/dist/app.js",
       instances: "max",
       exec_mode: "cluster",
       autorestart: true,
