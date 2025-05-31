@@ -66,9 +66,11 @@ jobs:
             
             # Extract new files into the release directory
             cd \"\$RELEASE_DIR\" &&
-            tar xzf ../../deploy_package.tar.gz &&
+            tar xzf ../deploy_package.tar.gz &&
             cd .. &&
-            rm deploy_package.tar.gz &&
+            
+            # Clean up deployment package
+            rm -f deploy_package.tar.gz &&
             
             # Update current symlink
             ln -nfs \"\$RELEASE_DIR\" current &&
