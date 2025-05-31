@@ -73,6 +73,7 @@ jobs:
 
             echo 'Creating required directories...'
             mkdir -p logs
+            mkdir -p dist/data
 
             echo 'Cleaning up old files...'
             rm -rf dist
@@ -85,15 +86,41 @@ jobs:
             echo 'Setting up environment...'
             echo -e \"$ENV_CONTENT\" > .env
 
+            echo 'Setting correct permissions...'
+            chmod 755 /var/www/locus-backend
+            chmod -R 755 dist
+            chmod 644 .env
+            chmod 644 package*.json
+            chmod 644 ecosystem.config.js
+            chmod -R 755 logs
+
             echo 'Installing production dependencies...'
             npm ci --omit=dev
 
-            echo 'Verifying data files...'
+            echo 'Verifying deployment...'
+            echo 'Directory structure:'
+            ls -la
+            echo 'Data files:'
             ls -la dist/data/
+            echo 'Content of work.json:'
+            cat dist/data/work.json | head -n 5
+            echo 'Node version:'
+            node --version
+            echo 'PM2 version:'
+            pm2 --version
             
             echo 'Starting application...'
             pm2 start ecosystem.config.js --env production --wait-ready
+
+            echo 'Saving PM2 configuration...'
             pm2 save
+
+            echo 'PM2 status:'
+            pm2 list
+            
+            echo 'Checking application logs:'
+            tail -n 50 logs/error.log || true
+            tail -n 50 logs/out.log || true
 
             echo 'Deployment complete!'
           " 
