@@ -2,10 +2,42 @@ import fs from 'fs/promises';
 import path from 'path';
 import { getImagesFromFolder } from './cloudinary.service';
 
-// Base path for data files - simplified to use direct paths
-const BASE_PATH = process.env.NODE_ENV === 'production' 
-  ? '/var/www/locus-backend/dist/data'
-  : path.join(__dirname, '..', 'data');
+// Base path for data files - handle both dev and prod correctly
+const isDevelopment = process.env.NODE_ENV !== 'production';
+const isRunningWithTsNode = process.env.TS_NODE_DEV === 'true' || !!process.env.TS_NODE_DEV;
+
+// In development, use src/data
+// In production, first try the configured production path, then fall back to dist/data
+const getBasePath = async () => {
+  if (isDevelopment) {
+    return path.join(process.cwd(), 'src', 'data');
+  }
+
+  // In production, try the configured path first
+  const prodPath = '/var/www/locus-backend/dist/data';
+  try {
+    await fs.access(prodPath);
+    return prodPath;
+  } catch {
+    // Fall back to local dist/data if production path is not accessible
+    return path.join(process.cwd(), 'dist', 'data');
+  }
+};
+
+// Initialize BASE_PATH
+let BASE_PATH = '';
+
+// Function to initialize the service
+export const initializeDataService = async () => {
+  BASE_PATH = await getBasePath();
+  console.log(`[DataService] Environment: ${process.env.NODE_ENV}`);
+  console.log(`[DataService] Running with ts-node: ${isRunningWithTsNode}`);
+  console.log(`[DataService] Current working directory: ${process.cwd()}`);
+  console.log(`[DataService] Using BASE_PATH: ${BASE_PATH}`);
+};
+
+// Call initialize immediately
+initializeDataService().catch(console.error);
 
 // Defines the expected structure of an item in the work.json data
 interface WorkItem {
@@ -44,6 +76,11 @@ interface GenericData {
  * @throws Error if the file cannot be read or parsed.
  */
 export const getDataFile = async (fileName: string): Promise<GenericData | WorkData> => {
+  // Ensure BASE_PATH is initialized
+  if (!BASE_PATH) {
+    await initializeDataService();
+  }
+
   const filePath = path.join(BASE_PATH, fileName);
   console.log(`[getDataFile] Environment: ${process.env.NODE_ENV}`);
   console.log(`[getDataFile] Base Path: ${BASE_PATH}`);
@@ -83,19 +120,59 @@ export const getDataFile = async (fileName: string): Promise<GenericData | WorkD
  * @returns A promise that resolves to the processed work data.
  */
 export const getWorkData = async (): Promise<WorkData> => {
-  const workItems = await getDataFile('work.json') as WorkData;
-  console.log('[DataService] Initial workItems loaded for getWorkData (full, before stripping):', JSON.stringify(workItems, null, 2));
+  try {
+    // Log environment and path information
+    console.log(`[getWorkData] Environment: ${process.env.NODE_ENV}`);
+    console.log(`[getWorkData] Base Path: ${BASE_PATH}`);
+    
+    // Get the raw work data
+    const workItems = await getDataFile('work.json') as WorkData;
+    console.log('[getWorkData] Successfully loaded work.json');
 
-  const processedWorkItems = workItems.map(item => {
-    // Destructure to get item properties, then explicitly exclude images and imageFolders
-    const { images, imageFolders, ...itemWithoutImageArrays } = item;
-    // Log what's being stripped for clarity, if needed
-    // console.log(`[DataService] Stripping image arrays from: ${item.title}`);
-    return itemWithoutImageArrays as WorkItem; // Cast back to WorkItem, assuming the rest of the fields match
-  });
+    // Safely process each work item
+    const processedWorkItems = workItems.map(item => {
+      try {
+        // Create a new object with all properties except images and imageFolders
+        const { 
+          images = [], // Default to empty array if undefined
+          imageFolders = [], // Default to empty array if undefined
+          ...rest 
+        } = item;
 
-  console.log('[DataService] Finished processing work data for getWorkData (stripped). ProcessedWorkItems:', JSON.stringify(processedWorkItems, null, 2));
-  return processedWorkItems;
+        // Return the processed item with type safety
+        return {
+          ...rest,
+          images: [], // Initialize with empty array
+          imageFolders: [] // Initialize with empty array
+        } as WorkItem;
+      } catch (itemError) {
+        console.error(`[getWorkData] Error processing work item:`, itemError);
+        // Return a minimal valid work item if processing fails
+        return {
+          title: item.title || 'Unknown',
+          summary: item.summary || '',
+          details: [],
+          techStack: [],
+          features: [],
+          type: '',
+          labels: [],
+          company: null,
+          dateFrom: '',
+          dateUntil: null,
+          url: null,
+          images: [],
+          media: [],
+          github: null
+        } as WorkItem;
+      }
+    });
+
+    console.log(`[getWorkData] Successfully processed ${processedWorkItems.length} work items`);
+    return processedWorkItems;
+  } catch (error) {
+    console.error('[getWorkData] Error fetching or processing work data:', error);
+    throw new Error('Error serving processed work data.');
+  }
 };
 
 /**
