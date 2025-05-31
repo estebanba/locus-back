@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "locus-back",
-      script: "/var/www/locus-back/dist/app.js",
+      script: "./dist/app.js",
       instances: "max",
       exec_mode: "cluster",
       autorestart: true,
@@ -15,11 +15,11 @@ module.exports = {
         CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
         CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
       },
-      error_file: "/var/www/locus-back/logs/error.log",
-      out_file: "/var/www/locus-back/logs/out.log",
+      error_file: "./logs/error.log",
+      out_file: "./logs/out.log",
       restart_delay: 1000,
       kill_timeout: 3000,
-      cwd: "/var/www/locus-back",
+      cwd: "/Users/estebanbasili/Documents/GitHub/locus-back"
     },
   ],
 }; 

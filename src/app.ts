@@ -1,24 +1,8 @@
 import dotenv from 'dotenv';
-import path from 'path'; // Import path module
+import path from 'path';
 
 // Configure dotenv to load the .env file
-// In production, load from the 'current' subdirectory
-// In development, load from the project root
-let dotEnvPath;
-if (process.env.NODE_ENV === 'production') {
-  dotEnvPath = path.resolve(process.cwd(), 'current', '.env');
-} else {
-  dotEnvPath = path.resolve(process.cwd(), '.env');
-}
-dotenv.config({ path: dotEnvPath });
-
-// ---- START DEBUGGING: Check Cloudinary Env Vars ----
-// console.log('[DEBUG] Dotenv loaded. Checking Cloudinary variables:');
-// console.log(`[DEBUG] CLOUDINARY_CLOUD_NAME: ${process.env.CLOUDINARY_CLOUD_NAME}`);
-// console.log(`[DEBUG] CLOUDINARY_API_KEY: ${process.env.CLOUDINARY_API_KEY}`);
-// console.log(`[DEBUG] CLOUDINARY_API_SECRET (length): ${process.env.CLOUDINARY_API_SECRET ? process.env.CLOUDINARY_API_SECRET.length : 'undefined'}`);
-// console.log(`[DEBUG] PORT: ${process.env.PORT}`);
-// ---- END DEBUGGING ----
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
