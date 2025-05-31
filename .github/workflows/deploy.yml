@@ -57,14 +57,11 @@ jobs:
             [ -f .env ] && cp .env .env.backup || true
             
             # Clean up old files (keep node_modules)
-            sudo rm -rf dist/ package*.json &&
+            rm -rf dist/ package*.json &&
             
             # Extract new files
-            sudo tar xzf deploy_package.tar.gz &&
-            sudo rm deploy_package.tar.gz &&
-            
-            # Fix ownership
-            sudo chown -R deploy:deploy . &&
+            tar xzf deploy_package.tar.gz &&
+            rm deploy_package.tar.gz &&
             
             # Update .env
             echo -e \"$ENV_CONTENT\" > .env &&
