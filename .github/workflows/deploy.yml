@@ -3,258 +3,54 @@ name: Deploy Locus Backend to VPS
 on:
   push:
     branches:
-      - main # Or your primary deployment branch
+      - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      VPS_HOST: ${{ secrets.VPS_HOST }}
-      VPS_USER: ${{ secrets.VPS_USER }}
-      VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-      VPS_PROJECT_PATH: ${{ secrets.VPS_PROJECT_PATH }}
-      NODE_VERSION: ${{ secrets.NODE_VERSION }} # Used by setup-node and referenced in the script
-      PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
-      
-      # NVM_DIR_PATH_ENV is used in the script with a fallback. 
-      # Mapping to secrets.NVM_NODE_PATH assuming it stores the NVM installation directory (e.g., /home/deploy/.nvm)
-      # If NVM_NODE_PATH is something else (like path to node binary), this specific mapping might be incorrect.
-      # If no secret is mapped, script defaults to $HOME/.nvm for NVM_DIR_PATH.
-      NVM_DIR_PATH_ENV: ${{ secrets.NVM_NODE_PATH }}
-
-      # Secrets for the .env file generated in the script:
-      # Ensure these secrets exist in your GitHub repository with these exact names or adjust as needed.
-      # If a secret for PORT, MONGODB_URI, JWT_SECRET, or FRONTEND_URL is not set, 
-      # the script will write an empty value for it in the .env file.
-      PORT_SECRET: ${{ secrets.PORT }} # Assuming you have a secret named PORT for the app
-      MONGODB_URI_SECRET: ${{ secrets.MONGODB_URI }} # Assuming you have a secret named MONGODB_URI
-      JWT_SECRET_VALUE_SECRET: ${{ secrets.JWT_SECRET }} # Assuming you have a secret named JWT_SECRET
-      CLOUDINARY_CLOUD_NAME_SECRET: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
-      CLOUDINARY_API_KEY_SECRET: ${{ secrets.CLOUDINARY_API_KEY }}
-      CLOUDINARY_API_SECRET_VALUE_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
-      FRONTEND_URL_SECRET: ${{ secrets.FRONTEND_URL }} # Assuming you have a secret named FRONTEND_URL
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }} # e.g., 22.11.0
+          node-version: "22.11.0"
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm ci
 
-      - name: Build application
+      - name: Build
         run: npm run build
 
-      - name: Verify build output
+      - name: Create SSH key
         run: |
-          echo "Checking for dist/data/work.json..."
-          # Create dist/data if it might not exist from build to avoid ls error
-          mkdir -p dist/data 
-          ls -l dist/data/
-          if [ ! -f "dist/data/work.json" ]; then
-            echo "ERROR: dist/data/work.json not found after build!"
-            echo "Listing contents of src/data (if it exists):"
-            ls -l src/data/ || echo "src/data/ not found or ls error."
-            echo "Full contents of dist directory:"
-            ls -R dist
-            exit 1
-          fi
-          echo "dist/data/work.json found successfully after build."
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
 
-      - name: Prepare deployment package
+      - name: Add Known Hosts
         run: |
-          mkdir deploy_package
-          cp -R dist deploy_package/
-          cp package.json deploy_package/
-          cp package-lock.json deploy_package/
-          # If ecosystem.config.js is in your repo root and you want it deployed with each release:
-          # cp ecosystem.config.js deploy_package/
-          tar -czf deploy_package.tar.gz -C deploy_package .
+          echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
 
-      - name: Verify deployment package contents
+      - name: Deploy to VPS
         run: |
-          echo "Listing contents of deploy_package.tar.gz:"
-          tar -tvzf deploy_package.tar.gz
-          echo "Checking for dist/data/work.json in deploy_package.tar.gz..."
-          if tar -tvzf deploy_package.tar.gz | grep -q "dist/data/work.json"; then
-            echo "dist/data/work.json found in tarball."
-          else
-            echo "ERROR: dist/data/work.json NOT found in tarball!"
-            exit 1
-          fi
+          # Create .env file content
+          ENV_CONTENT="JWT_SECRET=\"${{ secrets.JWT_SECRET }}\"\n\
+          FRONTEND_URL=\"${{ secrets.FRONTEND_URL }}\"\n\
+          FRONTEND_DEV_URL=\"${{ secrets.FRONTEND_DEV_URL }}\"\n\
+          PORT=${{ secrets.PORT }}\n\
+          NODE_ENV=production"
 
-      - name: Create new release directory on VPS
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ env.VPS_HOST }}
-          username: ${{ env.VPS_USER }}
-          key: ${{ env.VPS_SSH_PRIVATE_KEY }}
-          script: |
-            set -e
-            APP_PATH="${{ env.VPS_PROJECT_PATH }}" # e.g., /var/www/locus-backend
-            RELEASES_PATH="$APP_PATH/releases"
-            TIMESTAMP=$(date +%Y%m%d%H%M%S)
-            NEW_RELEASE_PATH_ON_SERVER="$RELEASES_PATH/$TIMESTAMP"
-            mkdir -p "$NEW_RELEASE_PATH_ON_SERVER" # Quoted path
-            echo "Created directory for release: $NEW_RELEASE_PATH_ON_SERVER"
-
-      - name: Upload deployment package to VPS project root
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ env.VPS_HOST }}
-          username: ${{ env.VPS_USER }}
-          key: ${{ env.VPS_SSH_PRIVATE_KEY }}
-          source: "deploy_package.tar.gz"
-          target: ${{ env.VPS_PROJECT_PATH }} # Upload to project root temporarily
-
-      - name: Deploy to VPS via SSH
-        uses: appleboy/ssh-action@v1.0.3 # Ensuring version from user prompt
-        with:
-          host: ${{ env.VPS_HOST }}
-          username: ${{ env.VPS_USER }}
-          key: ${{ env.VPS_SSH_PRIVATE_KEY }}
-          script: |
-            set -e # Exit immediately if a command exits with a non-zero status
-
-            # Define variables from GitHub Actions environment
-            APP_PATH="${{ env.VPS_PROJECT_PATH }}"
-            NVM_NODE_VERSION="${{ env.NODE_VERSION }}"
-            PM2_APP_NAME="${{ env.PM2_APP_NAME }}"
-            NVM_DIR_PATH="${NVM_DIR_PATH_ENV:-"$HOME/.nvm"}" # NVM_DIR_PATH_ENV should be set in GHA `env:` context
-
-            RELEASES_PATH="$APP_PATH/releases"
-            SHARED_PATH="$APP_PATH/shared"
-            CURRENT_PATH="$APP_PATH/current"
-            DEPLOY_PACKAGE_FILENAME="deploy_package.tar.gz"
-
-            # The "Upload deployment package" step (scp-action) should have placed the package 
-            # at $APP_PATH/$DEPLOY_PACKAGE_FILENAME on the VPS.
-            # We will verify its existence there.
-            if [ ! -f "$APP_PATH/$DEPLOY_PACKAGE_FILENAME" ]; then
-              echo "ERROR: Deployment package $APP_PATH/$DEPLOY_PACKAGE_FILENAME not found after scp."
-              echo "Please check the 'Upload deployment package' step."
-              exit 1
-            fi
-            
-            RELEASE_TO_DEPLOY=$(ls -1dt "$RELEASES_PATH"/*/ 2>/dev/null | head -n 1 | sed 's:/*$::')
-
-            if [ -z "$RELEASE_TO_DEPLOY" ]; then
-              echo "ERROR: No existing release directory found in $RELEASES_PATH."
-              # Option 1: Fail the script
-              exit 1
-              # Option 2: Create a new release directory (uncomment to use)
-              # RELEASE_TIMESTAMP=$(date +%Y%m%d%H%M%S)
-              # RELEASE_TO_DEPLOY="$RELEASES_PATH/$RELEASE_TIMESTAMP"
-              # echo "-----> Creating new release directory: $RELEASE_TO_DEPLOY"
-              # mkdir -p "$RELEASE_TO_DEPLOY"
-            fi
-
-            echo "-----> Target release directory: $RELEASE_TO_DEPLOY"
-
-            echo "-----> Moving package $DEPLOY_PACKAGE_FILENAME from $APP_PATH to $RELEASE_TO_DEPLOY"
-            mv "$APP_PATH/$DEPLOY_PACKAGE_FILENAME" "$RELEASE_TO_DEPLOY/$DEPLOY_PACKAGE_FILENAME"
-
-            echo "-----> Deploying in $RELEASE_TO_DEPLOY"
-            cd "$RELEASE_TO_DEPLOY"
-
-            echo "-----> Extracting package"
-            tar -xzf "$DEPLOY_PACKAGE_FILENAME" -C .
-            rm "$DEPLOY_PACKAGE_FILENAME"
-
-            echo "-----> Installing production dependencies"
-            export NVM_DIR="$NVM_DIR_PATH"
-            if [ -s "$NVM_DIR/nvm.sh" ]; then
-              . "$NVM_DIR/nvm.sh"
-              if [ -s "$NVM_DIR/bash_completion" ]; then
-                . "$NVM_DIR/bash_completion"
-              fi
-              
-              echo "Using Node version for npm install: $NVM_NODE_VERSION"
-              nvm use "$NVM_NODE_VERSION"
-              
-              echo "Current Node version: $(node -v), npm version: $(npm -v)"
-              npm install --production --omit=dev --ignore-scripts
-            else
-              echo "NVM not found at $NVM_DIR. Skipping npm install."
-              exit 1 # Fail if NVM is critical
-            fi
-
-            echo "-----> Creating/Updating shared .env file: $SHARED_PATH/.env"
-            mkdir -p "$SHARED_PATH"
-
-            cat << EOF | tee "$SHARED_PATH/.env" > /dev/null
-            NODE_ENV=production
-            PORT=${{ env.PORT_SECRET }}
-            MONGODB_URI='${{ env.MONGODB_URI_SECRET }}'
-            JWT_SECRET='${{ env.JWT_SECRET_VALUE_SECRET }}'
-            CLOUDINARY_CLOUD_NAME='${{ env.CLOUDINARY_CLOUD_NAME_SECRET }}'
-            CLOUDINARY_API_KEY='${{ env.CLOUDINARY_API_KEY_SECRET }}'
-            CLOUDINARY_API_SECRET='${{ env.CLOUDINARY_API_SECRET_VALUE_SECRET }}'
-            FRONTEND_URL='${{ env.FRONTEND_URL_SECRET }}'
-            EOF
-
-            echo "-----> Verifying .env file (first 3 lines from $SHARED_PATH/.env):"
-            head -n 3 "$SHARED_PATH/.env"
-
-            echo "-----> Symlinking $SHARED_PATH/.env to $RELEASE_TO_DEPLOY/.env"
-            ln -nfs "$SHARED_PATH/.env" ".env"
-
-            echo "-----> Updating 'current' symlink to $RELEASE_TO_DEPLOY"
-            ln -nfs "$RELEASE_TO_DEPLOY" "$CURRENT_PATH"
-
-            echo "-----> Symlinking $SHARED_PATH/.env to $CURRENT_PATH/.env"
-            ln -nfs "$SHARED_PATH/.env" "$CURRENT_PATH/.env"
-
-            echo "-----> Reloading application with PM2"
-            export NVM_DIR="$NVM_DIR_PATH"
-            if [ -s "$NVM_DIR/nvm.sh" ]; then
-              . "$NVM_DIR/nvm.sh"
-              
-              echo "Using Node version for PM2: $NVM_NODE_VERSION"
-              nvm use "$NVM_NODE_VERSION"
-              
-              NVM_PM2_PATH=$(dirname $(which node))/pm2
-              ECOSYSTEM_CONFIG_PATH="$APP_PATH/ecosystem.config.js"
-              
-              if [ ! -f "$ECOSYSTEM_CONFIG_PATH" ]; then
-                echo "ERROR: PM2 ecosystem file not found at $ECOSYSTEM_CONFIG_PATH"
-                exit 1
-              fi
-
-              echo "-----> Managing PM2 application: $PM2_APP_NAME"
-              echo "Current PM2 list before changes:"
-              $NVM_PM2_PATH list || echo "Could not list PM2 processes."
-
-              echo "Attempting to delete PM2 process '$PM2_APP_NAME' if it exists..."
-              $NVM_PM2_PATH delete "$PM2_APP_NAME" || echo "PM2 process '$PM2_APP_NAME' not found or delete failed (this might be normal if not previously running)."
-
-              echo "Starting PM2 process '$PM2_APP_NAME' using ecosystem file: $ECOSYSTEM_CONFIG_PATH"
-              # The ecosystem file's `cwd` should handle the working directory for the app.
-              # Running `pm2 start` from APP_PATH where ecosystem.config.js is located.
-              cd "$APP_PATH"
-              $NVM_PM2_PATH start "$ECOSYSTEM_CONFIG_PATH" --env production --update-env
-              
-              echo "PM2 status after start:"
-              $NVM_PM2_PATH list || echo "Could not list PM2 processes."
-
-              echo "-----> Saving PM2 process list for startup on boot"
-              $NVM_PM2_PATH save
-              
-              echo "-----> Displaying PM2 logs for $PM2_APP_NAME (last 20 lines)"
-              sleep 3 # Give a moment for logs to populate
-              $NVM_PM2_PATH logs "$PM2_APP_NAME" --lines 20 --nostream || echo "Could not retrieve PM2 logs."
-            else
-              echo "NVM not found at $NVM_DIR. PM2 operations will fail."
-              exit 1 # Fail if NVM is critical for PM2
-            fi
-
-            echo "-----> Cleaning up old releases (keeping last 3)"
-            cd "$RELEASES_PATH"
-            ls -1dt "$RELEASES_PATH"/*/ 2>/dev/null | tail -n +4 | sed 's/.*/"&"/' | xargs -I {} sudo rm -rf {}
-
-            echo "🚀 Deployment to $RELEASE_TO_DEPLOY successful!" 
+          # Deploy and update environment
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "
+            export PATH=/home/deploy/.nvm/versions/node/v22.11.0/bin:\$PATH &&
+            cd /var/www/locus-backend &&
+            echo 'Fetching latest changes and resetting local branch...' &&
+            git fetch origin &&
+            git reset --hard origin/main &&
+            echo -e \"$ENV_CONTENT\" > .env &&
+            npm ci &&
+            npm run build &&
+            npm ci --omit=dev &&
+            pm2 reload all --update-env
+          " 
