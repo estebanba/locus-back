@@ -37,6 +37,9 @@ jobs:
         NVM_NODE_PATH: ${{ secrets.NVM_NODE_PATH }}
         NVM_NPM_PATH: ${{ secrets.NVM_NPM_PATH }}
         NVM_PM2_PATH: ${{ secrets.NVM_PM2_PATH }}
+        FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+        FRONTEND_DEV_URL: ${{ secrets.FRONTEND_DEV_URL }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
       run: |
         # Create .env file content
         ENV_CONTENT="CLOUDINARY_CLOUD_NAME=\"${CLOUDINARY_CLOUD_NAME}\"\n\
@@ -47,14 +50,36 @@ jobs:
         FRONTEND_URL=\"${FRONTEND_URL}\"\n\
         FRONTEND_DEV_URL=\"${FRONTEND_DEV_URL}\"\n\
         JWT_SECRET=\"${JWT_SECRET}\""
+
+        # Create ecosystem config content
+        ECOSYSTEM_CONTENT='module.exports = {
+          apps: [{
+            name: "'${PM2_APP_NAME}'",
+            script: "./dist/app.js",
+            instances: "max",
+            exec_mode: "cluster",
+            autorestart: true,
+            watch: false,
+            max_memory_restart: "1G",
+            env: {
+              NODE_ENV: "production",
+              PORT: '${PORT}'
+            },
+            error_file: "./logs/error.log",
+            out_file: "./logs/out.log",
+            merge_logs: true,
+            log_date_format: "YYYY-MM-DD HH:mm:ss Z"
+          }]
+        }'
         
         # Deploy and update environment
         ssh -i ~/.ssh/id_rsa $VPS_USER@$VPS_HOST "
+          # Setup environment
           export PATH=${NVM_NODE_PATH}:${NVM_NPM_PATH}:${NVM_PM2_PATH}:\$PATH &&
           
-          # Create directory if it doesn't exist
-          sudo mkdir -p ${VPS_PROJECT_PATH} &&
-          sudo chown ${VPS_USER}:${VPS_USER} ${VPS_PROJECT_PATH} &&
+          # Create directory if it doesn't exist (using sudo with -n flag)
+          sudo -n mkdir -p ${VPS_PROJECT_PATH} || mkdir -p ${VPS_PROJECT_PATH} &&
+          sudo -n chown ${VPS_USER}:${VPS_USER} ${VPS_PROJECT_PATH} || true &&
           
           cd ${VPS_PROJECT_PATH} &&
           
@@ -71,26 +96,31 @@ jobs:
           # Create necessary directories
           mkdir -p logs dist/data &&
           
+          # Create configuration files
           echo -e \"$ENV_CONTENT\" > .env &&
+          echo '$ECOSYSTEM_CONTENT' > ecosystem.config.js &&
+          
+          # Install dependencies and build
           npm ci &&
           npm run build &&
           npm ci --omit=dev &&
           
-          # Copy data files
-          cp -r src/data/* dist/data/ &&
+          # Copy data files if they exist
+          if [ -d src/data ]; then
+            cp -r src/data/* dist/data/ || true
+          fi &&
           
           # Set correct permissions
           chmod -R 755 dist/data &&
-          chmod 644 .env &&
+          chmod 644 .env ecosystem.config.js &&
           
           # Start/Reload PM2
-          ${PM2_COMMAND} describe ${PM2_APP_NAME} > /dev/null
-          if [ \$? -eq 0 ]; then
-            # App exists, reload it
+          if ${PM2_COMMAND} describe ${PM2_APP_NAME} > /dev/null 2>&1; then
+            echo 'Reloading existing PM2 process...' &&
             ${PM2_COMMAND} reload ${PM2_APP_NAME} --update-env
           else
-            # App doesn't exist, start it
-            ${PM2_COMMAND} start ecosystem.config.js
+            echo 'Starting new PM2 process...' &&
+            ${PM2_COMMAND} start ecosystem.config.js &&
             ${PM2_COMMAND} save
           fi
         " 
