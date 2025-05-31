@@ -1,7 +1,7 @@
 module.exports = {
   apps: [{
     name: 'locus-back',
-    script: 'current/dist/app.js',
+    script: 'dist/app.js',
     cwd: '/var/www/locus-backend',
     interpreter: '/home/deploy/.nvm/versions/node/v22.11.0/bin/node',
     env_production: {
