@@ -1,4 +1,4 @@
-name: Deploy Locus Backend to VPS
+name: Deploy to Hetzner
 
 on:
   push:
@@ -14,24 +14,18 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22.11.0"
+          node-version: "20"
 
       - name: Install Dependencies
         run: npm ci
 
       - name: Build
-        run: |
-          npm run build
-          # Ensure data files are copied
-          mkdir -p dist/data
-          cp -r src/data/* dist/data/
-          echo "Verifying data files:"
-          ls -la dist/data/
+        run: npm run build
 
       - name: Create SSH key
         run: |
           mkdir -p ~/.ssh/
-          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
       - name: Add Known Hosts
@@ -40,86 +34,63 @@ jobs:
 
       - name: Deploy to VPS
         env:
-          DEPLOY_HOST: ${{ secrets.VPS_HOST }}
-          DEPLOY_USER: ${{ secrets.VPS_USER }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
-          FRONTEND_DEV_URL: ${{ secrets.FRONTEND_DEV_URL }}
-          PORT: ${{ secrets.PORT }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          PORT: 7001
         run: |
           # Create .env file content
-          ENV_CONTENT="JWT_SECRET=\"${JWT_SECRET}\"\n\
-          FRONTEND_URL=\"${FRONTEND_URL}\"\n\
-          FRONTEND_DEV_URL=\"${FRONTEND_DEV_URL}\"\n\
+          ENV_CONTENT="CLOUDINARY_CLOUD_NAME=\"${CLOUDINARY_CLOUD_NAME}\"\n\
+          CLOUDINARY_API_KEY=\"${CLOUDINARY_API_KEY}\"\n\
+          CLOUDINARY_API_SECRET=\"${CLOUDINARY_API_SECRET}\"\n\
           PORT=${PORT}\n\
           NODE_ENV=production"
 
-          # Create deployment package
-          tar -czf deploy_package.tar.gz dist/ package*.json ecosystem.config.js
-
-          # Copy files to server
-          echo "Copying deployment package to server..."
-          scp -i ~/.ssh/deploy_key deploy_package.tar.gz $DEPLOY_USER@$DEPLOY_HOST:/var/www/locus-backend/
-
           # Deploy and update environment
           ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST "
-            set -e
-            export PATH=/home/deploy/.nvm/versions/node/v22.11.0/bin:\$PATH
-            cd /var/www/locus-backend
-
-            echo 'Stopping PM2 processes...'
-            pm2 delete all || true
-            pm2 flush
-
-            echo 'Creating required directories...'
-            mkdir -p logs
-
-            echo 'Cleaning up old files...'
-            rm -rf dist releases current
-            rm -f package*.json ecosystem.config.js
-
-            echo 'Extracting new files...'
-            tar xzf deploy_package.tar.gz
-            rm -f deploy_package.tar.gz
-
-            echo 'Setting up environment...'
-            echo -e \"$ENV_CONTENT\" > .env
-
-            echo 'Setting correct permissions...'
-            chmod 755 /var/www/locus-backend
-            chmod -R 755 dist
-            chmod 644 .env
-            chmod 644 package*.json
-            chmod 644 ecosystem.config.js
-            chmod -R 755 logs
-
-            echo 'Installing production dependencies...'
-            npm ci --omit=dev
-
-            echo 'Verifying deployment...'
-            echo 'Directory structure:'
-            ls -la
-            echo 'Data files:'
-            ls -la dist/data/
-            echo 'Content of work.json:'
-            cat dist/data/work.json | head -n 5
-            echo 'Node version:'
-            node --version
-            echo 'PM2 version:'
-            pm2 --version
+            export PATH=/home/deploy/.nvm/versions/node/v22.11.0/bin:\$PATH &&
             
-            echo 'Starting application...'
-            pm2 start ecosystem.config.js --env production --wait-ready
-
-            echo 'Saving PM2 configuration...'
-            pm2 save
-
-            echo 'PM2 status:'
-            pm2 list
+            # Create directory if it doesn't exist
+            sudo mkdir -p /var/www/locus-back &&
+            sudo chown deploy:deploy /var/www/locus-back &&
             
-            echo 'Checking application logs:'
-            tail -n 50 logs/error.log || true
-            tail -n 50 logs/out.log || true
-
-            echo 'Deployment complete!'
+            cd /var/www/locus-back &&
+            
+            # Initialize git repository if needed
+            if [ ! -d .git ]; then
+              git init &&
+              git remote add origin https://github.com/yourusername/locus-back.git
+            fi &&
+            
+            echo 'Fetching latest changes and resetting local branch...' &&
+            git fetch origin &&
+            git reset --hard origin/main &&
+            
+            # Create necessary directories
+            mkdir -p logs dist/data &&
+            
+            echo -e \"$ENV_CONTENT\" > .env &&
+            npm ci &&
+            npm run build &&
+            npm ci --omit=dev &&
+            
+            # Copy data files
+            cp -r src/data/* dist/data/ &&
+            
+            # Set correct permissions
+            chmod -R 755 dist/data &&
+            chmod 644 .env &&
+            
+            # Start/Reload PM2
+            pm2 describe locus-back > /dev/null
+            if [ $? -eq 0 ]; then
+              # App exists, reload it
+              pm2 reload locus-back --update-env
+            else
+              # App doesn't exist, start it
+              pm2 start ecosystem.config.js
+              pm2 save
+            fi
           " 
