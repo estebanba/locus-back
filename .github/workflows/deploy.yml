@@ -20,7 +20,11 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build
+        run: |
+          npm run build
+          # Ensure data directory exists and copy data files
+          mkdir -p dist/data
+          cp -r src/data/* dist/data/
 
       - name: Create deployment package
         run: |
@@ -62,6 +66,11 @@ jobs:
             # Extract new files
             tar xzf deploy_package.tar.gz &&
             rm deploy_package.tar.gz &&
+            
+            # Ensure data directory exists and has correct permissions
+            mkdir -p dist/data &&
+            chmod 755 dist/data &&
+            chmod 644 dist/data/*.json 2>/dev/null || true &&
             
             # Update .env
             echo -e \"$ENV_CONTENT\" > .env &&
