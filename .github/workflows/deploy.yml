@@ -7,6 +7,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
     - uses: actions/checkout@v3
@@ -22,6 +24,8 @@ jobs:
         echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+        # Add GitHub to known hosts
+        ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
         
     - name: Deploy to VPS
       env:
@@ -77,24 +81,26 @@ jobs:
           # Setup environment
           export PATH=${NVM_NODE_PATH}:${NVM_NPM_PATH}:${NVM_PM2_PATH}:\$PATH &&
           
+          # Setup SSH for git
+          mkdir -p ~/.ssh &&
+          ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts &&
+          
           # Create directory without sudo
           mkdir -p ${VPS_PROJECT_PATH} &&
           
           cd ${VPS_PROJECT_PATH} &&
           
-          # Initialize git repository if needed
-          if [ ! -d .git ]; then
-            git init &&
-            git config --global --add safe.directory ${VPS_PROJECT_PATH} &&
-            git remote add origin git@github.com:estebanbasili/locus-back.git
-          fi &&
+          # Remove existing git directory if exists
+          rm -rf .git &&
           
-          # Ensure we're on main branch
-          git checkout -B main &&
+          # Initialize fresh git repository
+          git init &&
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com' &&
+          git config --global user.name 'GitHub Actions' &&
+          git config --global --add safe.directory ${VPS_PROJECT_PATH} &&
           
-          echo 'Fetching latest changes and resetting local branch...' &&
-          git fetch origin main &&
-          git reset --hard origin/main &&
+          # Clone repository directly using the default GITHUB_TOKEN
+          git clone --depth 1 https://${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git . &&
           
           # Create necessary directories
           mkdir -p logs dist/data &&
