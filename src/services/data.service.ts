@@ -15,7 +15,7 @@ const getBasePath = async () => {
 
   // In production, try paths in order:
   const prodPaths = [
-    '/var/www/locus-backend/dist/data',           // New direct path
+    '/var/www/locus-back/dist/data',           // New direct path
     path.join(process.cwd(), 'dist', 'data'),     // Fallback to local dist/data
   ];
 

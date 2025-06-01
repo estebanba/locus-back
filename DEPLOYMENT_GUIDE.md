@@ -113,10 +113,10 @@ sudo ufw status
 
 These directories will house your application code, releases, and shared files.
 ```bash
-sudo mkdir -p /var/www/locus-backend/releases
-sudo mkdir -p /var/www/locus-backend/shared
-sudo mkdir -p /var/www/locus-backend/logs
-sudo chown -R deploy:deploy /var/www/locus-backend # Give ownership to deploy user
+sudo mkdir -p /var/www/locus-back/releases
+sudo mkdir -p /var/www/locus-back/shared
+sudo mkdir -p /var/www/locus-back/logs
+sudo chown -R deploy:deploy /var/www/locus-back # Give ownership to deploy user
 ```
 
 ### 2.6. Initial Manual Code Deployment
@@ -146,12 +146,12 @@ This step is for the very first deployment. Subsequent deployments will be handl
     *   Create the first release directory:
         ```bash
         RELEASE_NAME=$(date +%Y%m%d%H%M%S) # Example: initial-release
-        mkdir -p /var/www/locus-backend/releases/$RELEASE_NAME
+        mkdir -p /var/www/locus-back/releases/$RELEASE_NAME
         ```
     *   Move the package and extract it:
         ```bash
-        mv /home/deploy/deploy_package.tar.gz /var/www/locus-backend/releases/$RELEASE_NAME/
-        cd /var/www/locus-backend/releases/$RELEASE_NAME
+        mv /home/deploy/deploy_package.tar.gz /var/www/locus-back/releases/$RELEASE_NAME/
+        cd /var/www/locus-back/releases/$RELEASE_NAME
         tar -xzvf deploy_package.tar.gz
         ```
     *   Install production dependencies:
@@ -169,7 +169,7 @@ This step is for the very first deployment. Subsequent deployments will be handl
 
 This file will store your environment variables. It's placed in the `shared` directory so it persists across releases.
 ```bash
-nano /var/www/locus-backend/shared/.env
+nano /var/www/locus-back/shared/.env
 ```
 Add the following content, replacing placeholders with your actual values:
 ```ini
@@ -196,7 +196,7 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
 This file tells PM2 how to run your application. Create it in the main project directory on the VPS:
 ```bash
-nano /var/www/locus-backend/ecosystem.config.js
+nano /var/www/locus-back/ecosystem.config.js
 ```
 Add the following content:
 ```javascript
@@ -204,7 +204,7 @@ module.exports = {
   apps: [{
     name: 'locus-back', // Your application's name in PM2
     script: 'current/dist/app.js', // Path to the main script, relative to cwd
-    cwd: '/var/www/locus-backend', // Root directory for the app
+    cwd: '/var/www/locus-back', // Root directory for the app
     interpreter: `/home/deploy/.nvm/versions/node/v22.11.0/bin/node`, // Absolute path to NVM's Node interpreter
                                                                   // IMPORTANT: Update 'v22.11.0' if you use a different Node version.
                                                                   // You can find this path with: which node (after `nvm use`)
@@ -213,8 +213,8 @@ module.exports = {
       // PORT will be picked up from the .env file symlinked into current/
     },
     // Optional: Configure log files if you want PM2 to manage them directly
-    // error_file: '/var/www/locus-backend/logs/error.log',
-    // out_file: '/var/www/locus-backend/logs/out.log',
+    // error_file: '/var/www/locus-back/logs/error.log',
+    // out_file: '/var/www/locus-back/logs/out.log',
     // merge_logs: true,
     // log_date_format: 'YYYY-MM-DD HH:mm Z',
   }]
@@ -233,19 +233,19 @@ The `current` symlink points to the active release.
 1.  **Symlink the release:**
     (Replace `$RELEASE_NAME` with the actual directory name, e.g., `initial-release` or the timestamped one from step 2.6.4)
     ```bash
-    ln -sfn /var/www/locus-backend/releases/$RELEASE_NAME /var/www/locus-backend/current
+    ln -sfn /var/www/locus-back/releases/$RELEASE_NAME /var/www/locus-back/current
     ```
 2.  **Symlink the shared `.env` file into the `current` release:**
     Your application (specifically `app.ts`) is configured to look for `.env` inside the `current` directory when in production.
     ```bash
-    ln -sfn /var/www/locus-backend/shared/.env /var/www/locus-backend/current/.env
+    ln -sfn /var/www/locus-back/shared/.env /var/www/locus-back/current/.env
     ```
 
 ### 2.10. Start Application with PM2
 
 1.  Navigate to where `ecosystem.config.js` is located:
     ```bash
-    cd /var/www/locus-backend
+    cd /var/www/locus-back
     ```
 2.  Start the application using PM2:
     ```bash
@@ -424,7 +424,7 @@ Store sensitive information as secrets in your GitHub repository settings. Go to
 *   `VPS_HOST`: Your VPS's public IP address.
 *   `VPS_USER`: `deploy` (or your deployment username).
 *   `VPS_SSH_PRIVATE_KEY`: The content of the **private key** file (`~/.ssh/github_actions_locus_back` that you generated). Copy the entire content, including `-----BEGIN ... KEY-----` and `-----END ... KEY-----`.
-*   `VPS_PROJECT_PATH`: `/var/www/locus-backend` (the root deployment directory on your VPS).
+*   `VPS_PROJECT_PATH`: `/var/www/locus-back` (the root deployment directory on your VPS).
 *   `PM2_APP_NAME`: `locus-back` (must match the `name` in your `ecosystem.config.js`).
 *   `NVM_NODE_VERSION`: e.g., `v22.11.0` (the Node.js version used on the VPS by the `deploy` user).
 *   `NVM_DIR`: `/home/deploy/.nvm` (the NVM installation directory for your `deploy` user).
@@ -459,7 +459,7 @@ jobs:
       VPS_HOST: ${{ secrets.VPS_HOST }}
       VPS_USER: ${{ secrets.VPS_USER }}
       VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-      VPS_PROJECT_PATH: ${{ secrets.VPS_PROJECT_PATH }} # e.g., /var/www/locus-backend
+      VPS_PROJECT_PATH: ${{ secrets.VPS_PROJECT_PATH }} # e.g., /var/www/locus-back
       PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}       # e.g., locus-back
       NVM_NODE_VERSION: ${{ secrets.NVM_NODE_VERSION }} # e.g., v22.11.0
       NVM_DIR_PATH: ${{ secrets.NVM_DIR }} # e.g., /home/deploy/.nvm
@@ -616,7 +616,7 @@ jobs:
             *   Extracts the package.
             *   **Crucially sources NVM** to ensure the correct Node.js and npm versions are used for `npm install`.
             *   Installs production dependencies within the new release directory.
-            *   **Atomically creates/overwrites `/var/www/locus-backend/shared/.env`** using `tee` and a heredoc, populated with secrets from GitHub. This ensures the `.env` file is always correct and clean.
+            *   **Atomically creates/overwrites `/var/www/locus-back/shared/.env`** using `tee` and a heredoc, populated with secrets from GitHub. This ensures the `.env` file is always correct and clean.
             *   Symlinks `shared/.env` to `NEW_RELEASE_DIR/.env`.
             *   Updates the `current` symlink to point to the new release.
             *   Symlinks `shared/.env` to `current/.env` as well (belt-and-suspenders for PM2).
@@ -632,14 +632,14 @@ jobs:
 *   **Cloudinary "Not fully set" / "Must supply cloud_name"**:
     *   This usually means Cloudinary environment variables are not loaded when the SDK initializes.
     *   **Ensure `dotenv.config()` is the *absolute first executable line* in `locus-back/src/app.ts`** (after imports like `path` and `dotenv` itself).
-    *   Verify Cloudinary secrets (`CLOUDINARY_CLOUD_NAME_SECRET`, etc.) are correctly set in GitHub Actions secrets and are being written to `/var/www/locus-backend/shared/.env` on the server by the deployment script.
+    *   Verify Cloudinary secrets (`CLOUDINARY_CLOUD_NAME_SECRET`, etc.) are correctly set in GitHub Actions secrets and are being written to `/var/www/locus-back/shared/.env` on the server by the deployment script.
     *   Check that no other file (e.g., `cloudinary.config.ts`) is calling `dotenv.config()` before `app.ts` does.
 *   **PM2 "Process not found" or startup issues**:
     *   Verify NVM is correctly sourced before PM2 commands in deployment scripts (`export NVM_DIR=...; . $NVM_DIR/nvm.sh; nvm use ...`).
     *   Double-check the `interpreter` path in `ecosystem.config.js` points to the correct NVM Node executable for the `deploy` user.
     *   Check PM2 logs: `pm2 logs locus-back` (or your app name).
     *   If `pm2 reload` is problematic, try `pm2 restart <app_name> --update-env` or a full delete and start: `pm2 delete <app_name> && pm2 start ecosystem.config.js --env production`.
-    *   Ensure the `cwd` in `ecosystem.config.js` is correct (`/var/www/locus-backend`).
+    *   Ensure the `cwd` in `ecosystem.config.js` is correct (`/var/www/locus-back`).
 *   **GitHub Actions Failures**:
     *   Carefully examine the logs for the failing step in the GitHub Actions run.
     *   Ensure SSH keys (public key on server, private key in secrets) and other GitHub secrets are correctly configured and not empty.
@@ -650,7 +650,7 @@ jobs:
     *   Verify `proxy_pass http://localhost:XXXX;` in your Nginx config matches the `PORT` your application is actually listening on (check server's `.env` and `app.ts` logic).
 *   **Environment Variables Not Loaded**:
     *   Ensure the `dotenv.config({ path: dotEnvPath })` in `app.ts` points to the correct `.env` file for the environment (production vs. local).
-    *   For production, verify `/var/www/locus-backend/shared/.env` exists, is correctly populated by the GitHub Actions script, and is symlinked to `/var/www/locus-backend/current/.env`.
+    *   For production, verify `/var/www/locus-back/shared/.env` exists, is correctly populated by the GitHub Actions script, and is symlinked to `/var/www/locus-back/current/.env`.
 
 ## 5. Local Development Notes
 
