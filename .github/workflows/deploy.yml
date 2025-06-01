@@ -171,10 +171,12 @@ jobs:
           echo -e \"$ENV_CONTENT\" > .env &&
           echo '$ECOSYSTEM_CONTENT' > ecosystem.config.js &&
           
-          # Install dependencies and build
+          # Install all dependencies (including devDependencies) for build
           npm ci &&
+          # Build the project (TypeScript needs devDependencies for types)
           npm run build &&
-          npm ci --omit=dev &&
+          # Prune devDependencies for a leaner production install (optional, but recommended)
+          npm prune --production &&
           
           # Copy data files if they exist
           if [ -d src/data ]; then
