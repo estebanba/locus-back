@@ -90,17 +90,16 @@ jobs:
           
           cd ${VPS_PROJECT_PATH} &&
           
-          # Remove existing git directory if exists
-          rm -rf .git &&
+          # Backup .env if it exists
+          if [ -f .env ]; then
+            cp .env .env.backup
+          fi &&
           
-          # Initialize fresh git repository
-          git init &&
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com' &&
-          git config --global user.name 'GitHub Actions' &&
-          git config --global --add safe.directory ${VPS_PROJECT_PATH} &&
+          # Clean directory except .env.backup
+          find . -mindepth 1 -delete &&
           
           # Clone repository directly using the default GITHUB_TOKEN
-          git clone --depth 1 https://${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git . &&
+          git clone https://${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git . &&
           
           # Create necessary directories
           mkdir -p logs dist/data &&
