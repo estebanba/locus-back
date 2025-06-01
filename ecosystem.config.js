@@ -19,7 +19,7 @@ module.exports = {
       out_file: "./logs/out.log",
       restart_delay: 1000,
       kill_timeout: 3000,
-      cwd: "/Users/estebanbasili/Documents/GitHub/locus-back"
+      cwd: "/var/www/locus-back"
     },
   ],
 }; 
