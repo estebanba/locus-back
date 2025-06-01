@@ -5,7 +5,7 @@
     "summary": "Full-stack personal portfolio website (v2) showcasing work, projects, and passions, featuring a React frontend and a Node.js backend.",
     "details": [
       "Designed overall architecture, layout, and user interface.",
-      "Frontend developed with React, TypeScript, Vite, Shadcn UI, and TailwindCSS. Hosted on Netlify (please confirm).",
+      "Frontend developed with React, TypeScript, Vite, Shadcn UI, and TailwindCSS. Hosted on Netlify.",
       "Backend API built with Node.js, Express, TypeScript, and MongoDB, providing data for the frontend.",
       "Backend deployed to a Hetzner VPS, managed with PM2, and served via Nginx reverse proxy with SSL (Certbot).",
       "Automated backend deployment pipeline implemented using GitHub Actions."

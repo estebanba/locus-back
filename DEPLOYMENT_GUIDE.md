@@ -440,188 +440,221 @@ Store sensitive information as secrets in your GitHub repository settings. Go to
 
 ### 3.5. Create GitHub Actions Workflow (`deploy.yml`)
 
-Create a file at `.github/workflows/deploy.yml` in your `locus-back` repository.
+Update your `.github/workflows/deploy.yml` to match the following working configuration. This workflow will:
+- Check for all required secrets and environment variables.
+- Set up Node.js for the build.
+- Create an SSH key for deployment.
+- Deploy the code, build, and environment to your VPS, and restart the app with PM2.
 
 ```yaml
-name: Deploy Locus Backend to VPS
+name: Deploy to VPS
 
 on:
   push:
-    branches:
-      - main # Or your primary deployment branch
+    branches: [ main ]
 
 jobs:
   deploy:
-    name: Deploy to VPS
     runs-on: ubuntu-latest
-
-    env:
-      VPS_HOST: ${{ secrets.VPS_HOST }}
-      VPS_USER: ${{ secrets.VPS_USER }}
-      VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-      VPS_PROJECT_PATH: ${{ secrets.VPS_PROJECT_PATH }} # e.g., /var/www/locus-back
-      PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}       # e.g., locus-back
-      NVM_NODE_VERSION: ${{ secrets.NVM_NODE_VERSION }} # e.g., v22.11.0
-      NVM_DIR_PATH: ${{ secrets.NVM_DIR }} # e.g., /home/deploy/.nvm
-
-      # Secrets for .env file
-      PORT_SECRET: ${{ secrets.VPS_PORT_NUMBER }}
-      MONGODB_URI_SECRET: ${{ secrets.MONGODB_URI_SECRET }}
-      JWT_SECRET_VALUE_SECRET: ${{ secrets.JWT_SECRET_VALUE }}
-      CLOUDINARY_CLOUD_NAME_SECRET: ${{ secrets.CLOUDINARY_CLOUD_NAME_SECRET }}
-      CLOUDINARY_API_KEY_SECRET: ${{ secrets.CLOUDINARY_API_KEY_SECRET }}
-      CLOUDINARY_API_SECRET_VALUE_SECRET: ${{ secrets.CLOUDINARY_API_SECRET_VALUE }}
-      FRONTEND_URL_SECRET: ${{ secrets.FRONTEND_LOCAL_URL_SECRET }} # Optional
-
+    permissions:
+      contents: read
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    # 1. Verify all required environment variables are set in GitHub Secrets
+    - name: Verify environment variables
+      run: |
+        required_vars=(
+          "NODE_VERSION"
+          "VPS_SSH_PRIVATE_KEY"
+          "SSH_KNOWN_HOSTS"
+          "VPS_HOST"
+          "VPS_USER"
+          "CLOUDINARY_CLOUD_NAME"
+          "CLOUDINARY_API_KEY"
+          "CLOUDINARY_API_SECRET"
+          "PORT"
+          "VPS_PROJECT_PATH"
+          "PM2_APP_NAME"
+          "PM2_COMMAND"
+          "NVM_NODE_PATH"
+          "NVM_NPM_PATH"
+          "NVM_PM2_PATH"
+          "FRONTEND_URL"
+          "FRONTEND_DEV_URL"
+          "JWT_SECRET"
+        )
+        
+        missing_vars=()
+        for var in "${required_vars[@]}"; do
+          if [ -z "${!var}" ]; then
+            missing_vars+=("$var")
+          fi
+        done
+        
+        if [ ${#missing_vars[@]} -ne 0 ]; then
+          echo "Error: Missing required environment variables:"
+          printf '%s\n' "${missing_vars[@]}"
+          exit 1
+        fi
+      env:
+        NODE_VERSION: ${{ secrets.NODE_VERSION }}
+        VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+        SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+        CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+        CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+        PORT: ${{ secrets.PORT }}
+        VPS_PROJECT_PATH: ${{ secrets.VPS_PROJECT_PATH }}
+        PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
+        PM2_COMMAND: ${{ secrets.PM2_COMMAND }}
+        NVM_NODE_PATH: ${{ secrets.NVM_NODE_PATH }}
+        NVM_NPM_PATH: ${{ secrets.NVM_NPM_PATH }}
+        NVM_PM2_PATH: ${{ secrets.NVM_PM2_PATH }}
+        FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+        FRONTEND_DEV_URL: ${{ secrets.FRONTEND_DEV_URL }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NVM_NODE_VERSION }} # Use the same Node version for build as on server
+    # 2. Checkout code
+    - uses: actions/checkout@v3
+    
+    # 3. Setup Node.js for build
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ secrets.NODE_VERSION }}
+        
+    # 4. Create SSH key for deployment
+    - name: Create SSH key
+      run: |
+        mkdir -p ~/.ssh/
+        echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+        # Add GitHub to known hosts
+        ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+        
+    # 5. Test SSH connection
+    - name: Test SSH connection
+      run: ssh -i ~/.ssh/id_rsa -o BatchMode=yes -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo 'SSH connection successful'"
+        
+    # 6. Deploy to VPS and restart PM2
+    - name: Deploy to VPS
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+        CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+        CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+        PORT: ${{ secrets.PORT }}
+        VPS_PROJECT_PATH: ${{ secrets.VPS_PROJECT_PATH }}
+        PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
+        PM2_COMMAND: ${{ secrets.PM2_COMMAND }}
+        NVM_NODE_PATH: ${{ secrets.NVM_NODE_PATH }}
+        NVM_NPM_PATH: ${{ secrets.NVM_NPM_PATH }}
+        NVM_PM2_PATH: ${{ secrets.NVM_PM2_PATH }}
+        FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+        FRONTEND_DEV_URL: ${{ secrets.FRONTEND_DEV_URL }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      run: |
+        # Create .env file content
+        ENV_CONTENT="CLOUDINARY_CLOUD_NAME=\"${CLOUDINARY_CLOUD_NAME}\"\n\
+        CLOUDINARY_API_KEY=\"${CLOUDINARY_API_KEY}\"\n\
+        CLOUDINARY_API_SECRET=\"${CLOUDINARY_API_SECRET}\"\n\
+        PORT=${PORT}\n\
+        NODE_ENV=production\n\
+        FRONTEND_URL=\"${FRONTEND_URL}\"\n\
+        FRONTEND_DEV_URL=\"${FRONTEND_DEV_URL}\"\n\
+        JWT_SECRET=\"${JWT_SECRET}\""
 
-      - name: Install dependencies
-        run: npm ci # Cleaner and faster than npm install for CI
+        # Create ecosystem config content
+        ECOSYSTEM_CONTENT='module.exports = {
+          apps: [{
+            name: "'${PM2_APP_NAME}'",
+            script: "./dist/app.js",
+            instances: "max",
+            exec_mode: "cluster",
+            autorestart: true,
+            watch: false,
+            max_memory_restart: "1G",
+            env: {
+              NODE_ENV: "production",
+              PORT: '${PORT}'
+            },
+            error_file: "./logs/error.log",
+            out_file: "./logs/out.log",
+            merge_logs: true,
+            log_date_format: "YYYY-MM-DD HH:mm:ss Z"
+          }]
+        }'
+        
+        # Deploy and update environment
+        ssh -i ~/.ssh/id_rsa $VPS_USER@$VPS_HOST "
+          # Setup NVM and Node environment
+          export NVM_DIR=\"\$HOME/.nvm\" &&
+          [ -s \"\$NVM_DIR/nvm.sh\" ] && \. \"\$NVM_DIR/nvm.sh\" &&
+          [ -s \"\$NVM_DIR/bash_completion\" ] && \. \"\$NVM_DIR/bash_completion\" &&
+          
+          # Add Node paths to PATH
+          export PATH=\"${NVM_NODE_PATH}:${NVM_NPM_PATH}:${NVM_PM2_PATH}:\$PATH\" &&
+          
+          # Verify Node.js and npm are available
+          echo \"Node.js version: \$(node --version)\" &&
+          echo \"npm version: \$(npm --version)\" &&
+          
+          # Create directory without sudo
+          mkdir -p ${VPS_PROJECT_PATH} &&
+          
+          cd ${VPS_PROJECT_PATH} &&
+          
+          # Backup .env if it exists
+          if [ -f .env ]; then
+            cp .env .env.backup
+          fi &&
+          
+          # Clean directory except .env.backup
+          find . -mindepth 1 -delete &&
+          
+          # Clone repository directly using the default GITHUB_TOKEN
+          git clone https://${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git . &&
+          
+          # Create necessary directories
+          mkdir -p logs dist/data &&
+          
+          # Create configuration files
+          echo -e \"$ENV_CONTENT\" > .env &&
+          echo '$ECOSYSTEM_CONTENT' > ecosystem.config.js &&
+          
+          # Install all dependencies (including devDependencies) for build
+          npm ci &&
+          # Build the project (TypeScript needs devDependencies for types)
+          npm run build &&
+          # Prune devDependencies for a leaner production install (optional, but recommended)
+          npm prune --production &&
+          
+          # Copy data files if they exist
+          if [ -d src/data ]; then
+            cp -r src/data/* dist/data/ || true
+          fi &&
+          
+          # Set correct permissions
+          chmod -R 755 dist/data &&
+          chmod 644 .env ecosystem.config.js &&
+          
+          # Stop and delete any old PM2 processes for this app (clean slate)
+          if ${PM2_COMMAND} describe ${PM2_APP_NAME} > /dev/null 2>&1; then
+            echo 'Deleting old PM2 process...' &&
+            ${PM2_COMMAND} delete ${PM2_APP_NAME} || true
+          fi &&
 
-      - name: Build application
-        run: npm run build # Assumes your build script is 'build' in package.json
+          # Start the app in cluster mode using ecosystem.config.js
+          ${PM2_COMMAND} start ecosystem.config.js &&
 
-      - name: Prepare deployment package
-        run: tar -czvf deploy_package.tar.gz dist package.json package-lock.json
-
-      - name: Deploy to VPS via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ env.VPS_HOST }}
-          username: ${{ env.VPS_USER }}
-          key: ${{ env.VPS_SSH_PRIVATE_KEY }}
-          script: |
-            set -e # Exit immediately if a command exits with a non-zero status.
-
-            # Define variables for paths and names
-            PROJECT_PATH="${{ env.VPS_PROJECT_PATH }}"
-            RELEASES_DIR="$PROJECT_PATH/releases"
-            SHARED_DIR="$PROJECT_PATH/shared"
-            CURRENT_SYMLINK="$PROJECT_PATH/current"
-            RELEASE_TIMESTAMP=$(date +%Y%m%d%H%M%S)
-            NEW_RELEASE_DIR="$RELEASES_DIR/$RELEASE_TIMESTAMP"
-            PACKAGE_NAME="deploy_package.tar.gz" # Must match the name in "Prepare deployment package" step
-
-            echo "Starting deployment..."
-            echo "Creating new release directory: $NEW_RELEASE_DIR"
-            mkdir -p "$NEW_RELEASE_DIR"
-
-            echo "Uploading $PACKAGE_NAME to $PROJECT_PATH/$PACKAGE_NAME"
-            # The package is uploaded by ssh-action to $HOME by default, move it.
-            # Alternatively, configure ssh-action to upload to a specific path if possible,
-            # or SCP it in a separate step. For simplicity, assuming it's in $HOME or current dir.
-            # If appleboy/ssh-action uploads to $HOME of VPS_USER:
-            mv "$HOME/$PACKAGE_NAME" "$PROJECT_PATH/$PACKAGE_NAME"
-
-            echo "Moving package to $NEW_RELEASE_DIR"
-            mv "$PROJECT_PATH/$PACKAGE_NAME" "$NEW_RELEASE_DIR/"
-
-            echo "Extracting package in $NEW_RELEASE_DIR"
-            cd "$NEW_RELEASE_DIR"
-            tar -xzvf "$PACKAGE_NAME"
-
-            echo "Sourcing NVM and installing production dependencies..."
-            # Source NVM explicitly for the script's environment
-            export NVM_DIR="${{ env.NVM_DIR_PATH }}"
-            [ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"
-            [ -s "$NVM_DIR/bash_completion" ] && \\. "$NVM_DIR/bash_completion"
-            
-            echo "Using Node version: ${{ env.NVM_NODE_VERSION }}"
-            nvm use "${{ env.NVM_NODE_VERSION }}"
-            
-            echo "Current Node version: $(node -v)"
-            echo "Current npm version: $(npm -v)"
-
-            npm install --production --omit=dev --ignore-scripts
-
-            echo "Creating .env file in $SHARED_DIR/.env"
-            # Use tee with a heredoc to create/overwrite the .env file atomically
-            # This ensures a clean .env file on every deployment
-            # Ensure your GitHub Secrets are not empty!
-            cat << EOF | sudo tee "$SHARED_DIR/.env" > /dev/null
-            NODE_ENV=production
-            PORT=${{ env.PORT_SECRET }}
-            MONGODB_URI='${{ env.MONGODB_URI_SECRET }}'
-            JWT_SECRET='${{ env.JWT_SECRET_VALUE_SECRET }}'
-            CLOUDINARY_CLOUD_NAME='${{ env.CLOUDINARY_CLOUD_NAME_SECRET }}'
-            CLOUDINARY_API_KEY='${{ env.CLOUDINARY_API_KEY_SECRET }}'
-            CLOUDINARY_API_SECRET='${{ env.CLOUDINARY_API_SECRET_VALUE_SECRET }}'
-            FRONTEND_LOCAL_URL='${{ env.FRONTEND_URL_SECRET }}'
-            EOF
-            # Set permissions for the .env file if needed, though deploy user should own shared_dir items.
-            # sudo chown ${{ env.VPS_USER }}:${{ env.VPS_USER }} "$SHARED_DIR/.env"
-            # sudo chmod 600 "$SHARED_DIR/.env" # Restrict permissions
-
-            echo "Symlinking shared .env to $NEW_RELEASE_DIR/.env"
-            ln -sfn "$SHARED_DIR/.env" "$NEW_RELEASE_DIR/.env"
-
-            echo "Updating 'current' symlink to point to new release: $NEW_RELEASE_DIR"
-            ln -sfn "$NEW_RELEASE_DIR" "$CURRENT_SYMLINK"
-            
-            # It's also good practice to ensure current/.env exists for PM2, especially if it might read it
-            # before ecosystem.config.js's env block or --update-env takes full effect.
-            echo "Symlinking shared .env to $CURRENT_SYMLINK/.env"
-            ln -sfn "$SHARED_DIR/.env" "$CURRENT_SYMLINK/.env"
-
-
-            echo "Reloading application with PM2..."
-            # Ensure PM2 can find node and npm from NVM
-            # The PM2 daemon should already be configured with the correct interpreter path
-            # but explicitly sourcing NVM before PM2 commands is a robust practice.
-            export NVM_DIR="${{ env.NVM_DIR_PATH }}"
-            [ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"
-            nvm use "${{ env.NVM_NODE_VERSION }}"
-            
-            # Use the full path to PM2 from NVM to be absolutely sure
-            NVM_PM2_PATH=$(dirname $(which node))/pm2 # Gets the pm2 path within current NVM bin
-            
-            # Reload using the ecosystem file and update environment variables
-            # The ecosystem file should be at $PROJECT_PATH/ecosystem.config.js
-            $NVM_PM2_PATH reload "$PROJECT_PATH/ecosystem.config.js" --update-env
-            # If reload is problematic, consider:
-            # $NVM_PM2_PATH restart ${{ env.PM2_APP_NAME }} --update-env
-            # Or even:
-            # $NVM_PM2_PATH delete ${{ env.PM2_APP_NAME }} || true # Ignore error if not found
-            # $NVM_PM2_PATH start "$PROJECT_PATH/ecosystem.config.js" --env production
-
-            echo "Cleaning up old releases (keeping last 3)..."
-            # Count current releases, then remove older ones.
-            # Ensure this command is safe and doesn't delete current or too many.
-            cd "$RELEASES_DIR" && ls -1t | tail -n +4 | xargs -I {} sudo rm -rf "$RELEASES_DIR"/{}
-
-            echo "Deployment finished successfully!"
+          # Save the PM2 process list for startup on reboot
+          ${PM2_COMMAND} save
+        " 
 ```
-**Explanation of `deploy.yml`:**
-*   **`on: push: branches: [main]`**: Triggers the workflow on pushes to the `main` branch.
-*   **`jobs: deploy: runs-on: ubuntu-latest`**: Defines a job named `deploy` that runs on a GitHub-hosted Ubuntu runner.
-*   **`env:`**: Sets up environment variables for the job, mostly from GitHub Secrets.
-*   **`steps:`**:
-    *   **Checkout code**: Gets your repository code.
-    *   **Set up Node.js**: Configures Node.js on the runner for building.
-    *   **Install dependencies**: `npm ci` for clean, reproducible installs.
-    *   **Build application**: Runs `npm run build` (compiles TypeScript).
-    *   **Prepare deployment package**: Creates `deploy_package.tar.gz` with `dist/`, `package.json`, `package-lock.json`.
-    *   **Deploy to VPS via SSH (`appleboy/ssh-action`)**:
-        *   Connects to your VPS using the provided SSH credentials.
-        *   The `script:` section runs commands on your VPS:
-            *   Creates a timestamped release directory.
-            *   Moves the uploaded tarball (assumed to be in `$HOME` by `ssh-action`, then moved to project path, then to release dir).
-            *   Extracts the package.
-            *   **Crucially sources NVM** to ensure the correct Node.js and npm versions are used for `npm install`.
-            *   Installs production dependencies within the new release directory.
-            *   **Atomically creates/overwrites `/var/www/locus-back/shared/.env`** using `tee` and a heredoc, populated with secrets from GitHub. This ensures the `.env` file is always correct and clean.
-            *   Symlinks `shared/.env` to `NEW_RELEASE_DIR/.env`.
-            *   Updates the `current` symlink to point to the new release.
-            *   Symlinks `shared/.env` to `current/.env` as well (belt-and-suspenders for PM2).
-            *   **Reloads PM2** using `pm2 reload ecosystem.config.js --update-env`. This reloads the app with the new code and environment variables. The script uses the full NVM path to `pm2`.
-            *   Cleans up old releases, keeping the last 3.
 
 ## 4. Troubleshooting Tips
 

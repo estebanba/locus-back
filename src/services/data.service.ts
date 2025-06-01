@@ -129,50 +129,23 @@ export const getDataFile = async (fileName: string): Promise<GenericData | WorkD
 };
 
 /**
- * Fetches work data from a GitHub Gist and processes image folder paths.
- * For each work item, if an image entry is a string (folder path),
- * it fetches the image URLs from Cloudinary and replaces the path.
+ * Fetches work data from the local data directory (src/data/work.json).
+ * Uses getDataFile to read and parse the file.
  * @returns A promise that resolves to the processed work data.
  */
 export const getWorkData = async (): Promise<WorkData> => {
-  try {
-    console.log('[getWorkData] Called');
-    const gistUrl = 'https://gist.githubusercontent.com/estebanba/d477e3dd640ec0c707da7f464d24c360/raw/1402d7f9d70b8467ea647fb58904546dd37949a8/work.json';
-    console.log('[getWorkData] Fetching from:', gistUrl);
+  // Call getDataFile to read 'work.json' from the local data directory
+  // This ensures we use the local file instead of fetching from a remote gist
+  const workItems = await getDataFile('work.json') as WorkData;
 
-    const response = await fetch(gistUrl);
-    console.log('[getWorkData] Fetch response status:', response.status);
+  // Optionally, ensure images and imageFolders are always arrays for each item
+  const processedWorkItems = workItems.map(item => ({
+    ...item,
+    images: item.images || [],
+    imageFolders: item.imageFolders || []
+  }));
 
-    if (!response.ok) {
-      const text = await response.text();
-      console.error('[getWorkData] Fetch failed:', response.status, response.statusText, text);
-      throw new Error(`Failed to fetch work data from Gist: ${response.status} ${response.statusText}`);
-    }
-
-    const text = await response.text();
-    console.log('[getWorkData] Raw response text:', text.slice(0, 200)); // Log first 200 chars
-
-    let workItems: WorkData;
-    try {
-      workItems = JSON.parse(text);
-    } catch (parseError) {
-      console.error('[getWorkData] JSON parse error:', parseError, 'Text:', text.slice(0, 200));
-      throw new Error('Invalid JSON in Gist');
-    }
-
-    console.log('[getWorkData] Successfully parsed JSON, items:', workItems.length);
-
-    const processedWorkItems = workItems.map(item => ({
-      ...item,
-      images: item.images || [],
-      imageFolders: item.imageFolders || []
-    }));
-
-    return processedWorkItems;
-  } catch (error) {
-    console.error('[getWorkData] Error details:', error);
-    throw new Error('Error serving processed work data.');
-  }
+  return processedWorkItems;
 };
 
 /**
