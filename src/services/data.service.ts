@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { getImagesFromFolder } from './cloudinary.service';
+import fetch from 'node-fetch';
 
 // Base path for data files - handle both dev and prod correctly
 const isDevelopment = process.env.NODE_ENV !== 'production';
@@ -53,8 +54,9 @@ export const initializeDataService = async () => {
 // Call initialize immediately
 initializeDataService().catch(console.error);
 
-// Defines the expected structure of an item in the work.json data
-interface WorkItem {
+// Define WorkItem and WorkData types if not already defined
+export interface WorkItem {
+  name: string;
   title: string;
   summary: string;
   details: string[];
@@ -66,16 +68,15 @@ interface WorkItem {
   dateFrom: string;
   dateUntil: string | null;
   url: string | null;
-  images: string[]; // Will store final array of image URLs
-  imageFolders?: string[]; // Optional: for Cloudinary folder paths
+  images: string[];
+  imagesPath?: string;
+  imageFolders?: string[];
   media: { name: string; url: string }[];
   github: string | null;
-  // Allow any other properties that might exist
   [key: string]: any;
 }
 
-// Defines the expected structure of the work.json data
-type WorkData = WorkItem[];
+export type WorkData = WorkItem[];
 
 // Defines the structure for other generic JSON data files
 interface GenericData {
@@ -163,6 +164,7 @@ export const getWorkData = async (): Promise<WorkData> => {
         console.error(`[getWorkData] Error processing work item:`, itemError);
         // Return a minimal valid work item if processing fails
         return {
+          name: item.name || 'Unknown',
           title: item.title || 'Unknown',
           summary: item.summary || '',
           details: [],
