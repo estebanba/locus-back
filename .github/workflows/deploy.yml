@@ -187,13 +187,15 @@ jobs:
           chmod -R 755 dist/data &&
           chmod 644 .env ecosystem.config.js &&
           
-          # Start/Reload PM2
+          # Stop and delete any old PM2 processes for this app (clean slate)
           if ${PM2_COMMAND} describe ${PM2_APP_NAME} > /dev/null 2>&1; then
-            echo 'Reloading existing PM2 process...' &&
-            ${PM2_COMMAND} reload ${PM2_APP_NAME} --update-env
-          else
-            echo 'Starting new PM2 process...' &&
-            ${PM2_COMMAND} start ecosystem.config.js &&
-            ${PM2_COMMAND} save
-          fi
+            echo 'Deleting old PM2 process...' &&
+            ${PM2_COMMAND} delete ${PM2_APP_NAME} || true
+          fi &&
+
+          # Start the app in cluster mode using ecosystem.config.js
+          ${PM2_COMMAND} start ecosystem.config.js &&
+
+          # Save the PM2 process list for startup on reboot
+          ${PM2_COMMAND} save
         " 
