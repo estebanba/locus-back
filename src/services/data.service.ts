@@ -136,34 +136,41 @@ export const getDataFile = async (fileName: string): Promise<GenericData | WorkD
  */
 export const getWorkData = async (): Promise<WorkData> => {
   try {
-    // URL of the public GitHub Gist containing work.json
+    console.log('[getWorkData] Called');
     const gistUrl = 'https://gist.githubusercontent.com/estebanba/d477e3dd640ec0c707da7f464d24c360/raw/1402d7f9d70b8467ea647fb58904546dd37949a8/work.json';
-    
-    // Fetch the work.json data from the Gist
+    console.log('[getWorkData] Fetching from:', gistUrl);
+
     const response = await fetch(gistUrl);
-    // Check if the response is successful (status 200-299)
+    console.log('[getWorkData] Fetch response status:', response.status);
+
     if (!response.ok) {
+      const text = await response.text();
+      console.error('[getWorkData] Fetch failed:', response.status, response.statusText, text);
       throw new Error(`Failed to fetch work data from Gist: ${response.status} ${response.statusText}`);
     }
-    // Parse the JSON response into a WorkData array
-    const workItems = await response.json() as WorkData;
-    
-    // Process each work item (this is a placeholder for any additional logic you want)
-    const processedWorkItems = workItems.map(item => {
-      // Here you could add logic to process images, etc.
-      return {
-        ...item,
-        images: item.images || [],
-        imageFolders: item.imageFolders || []
-      } as WorkItem;
-    });
 
-    // Return the processed work items
+    const text = await response.text();
+    console.log('[getWorkData] Raw response text:', text.slice(0, 200)); // Log first 200 chars
+
+    let workItems: WorkData;
+    try {
+      workItems = JSON.parse(text);
+    } catch (parseError) {
+      console.error('[getWorkData] JSON parse error:', parseError, 'Text:', text.slice(0, 200));
+      throw new Error('Invalid JSON in Gist');
+    }
+
+    console.log('[getWorkData] Successfully parsed JSON, items:', workItems.length);
+
+    const processedWorkItems = workItems.map(item => ({
+      ...item,
+      images: item.images || [],
+      imageFolders: item.imageFolders || []
+    }));
+
     return processedWorkItems;
   } catch (error) {
-    // Log the error for debugging
-    console.error('[getWorkData] Error fetching or processing work data:', error);
-    // Throw a generic error for the API response
+    console.error('[getWorkData] Error details:', error);
     throw new Error('Error serving processed work data.');
   }
 };
