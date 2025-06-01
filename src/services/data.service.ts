@@ -129,64 +129,41 @@ export const getDataFile = async (fileName: string): Promise<GenericData | WorkD
 };
 
 /**
- * Fetches work data from work.json and processes image folder paths.
+ * Fetches work data from a GitHub Gist and processes image folder paths.
  * For each work item, if an image entry is a string (folder path),
  * it fetches the image URLs from Cloudinary and replaces the path.
  * @returns A promise that resolves to the processed work data.
  */
 export const getWorkData = async (): Promise<WorkData> => {
   try {
-    // Log environment and path information
-    console.log(`[getWorkData] Environment: ${process.env.NODE_ENV}`);
-    console.log(`[getWorkData] Base Path: ${BASE_PATH}`);
+    // URL of the public GitHub Gist containing work.json
+    const gistUrl = 'https://gist.githubusercontent.com/estebanba/d477e3dd640ec0c707da7f464d24c360/raw/1402d7f9d70b8467ea647fb58904546dd37949a8/work.json';
     
-    // Get the raw work data
-    const workItems = await getDataFile('work.json') as WorkData;
-    console.log('[getWorkData] Successfully loaded work.json');
-
-    // Safely process each work item
+    // Fetch the work.json data from the Gist
+    const response = await fetch(gistUrl);
+    // Check if the response is successful (status 200-299)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch work data from Gist: ${response.status} ${response.statusText}`);
+    }
+    // Parse the JSON response into a WorkData array
+    const workItems = await response.json() as WorkData;
+    
+    // Process each work item (this is a placeholder for any additional logic you want)
     const processedWorkItems = workItems.map(item => {
-      try {
-        // Create a new object with all properties except images and imageFolders
-        const { 
-          images = [], // Default to empty array if undefined
-          imageFolders = [], // Default to empty array if undefined
-          ...rest 
-        } = item;
-
-        // Return the processed item with type safety
-        return {
-          ...rest,
-          images: [], // Initialize with empty array
-          imageFolders: [] // Initialize with empty array
-        } as WorkItem;
-      } catch (itemError) {
-        console.error(`[getWorkData] Error processing work item:`, itemError);
-        // Return a minimal valid work item if processing fails
-        return {
-          name: item.name || 'Unknown',
-          title: item.title || 'Unknown',
-          summary: item.summary || '',
-          details: [],
-          techStack: [],
-          features: [],
-          type: '',
-          labels: [],
-          company: null,
-          dateFrom: '',
-          dateUntil: null,
-          url: null,
-          images: [],
-          media: [],
-          github: null
-        } as WorkItem;
-      }
+      // Here you could add logic to process images, etc.
+      return {
+        ...item,
+        images: item.images || [],
+        imageFolders: item.imageFolders || []
+      } as WorkItem;
     });
 
-    console.log(`[getWorkData] Successfully processed ${processedWorkItems.length} work items`);
+    // Return the processed work items
     return processedWorkItems;
   } catch (error) {
+    // Log the error for debugging
     console.error('[getWorkData] Error fetching or processing work data:', error);
+    // Throw a generic error for the API response
     throw new Error('Error serving processed work data.');
   }
 };
