@@ -59,7 +59,11 @@ export const serveWorkData = async (_req: Request, res: Response): Promise<void>
     res.status(200).json(data);
   } catch (error) {
     console.error(`Controller: Error serving processed work data:`, error);
-    res.status(500).json({ message: 'Error serving processed work data.' });
+    res.status(500).json({
+      message: 'Error serving processed work data.',
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
   }
 };
 
