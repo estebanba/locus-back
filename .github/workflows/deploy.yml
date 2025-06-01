@@ -11,6 +11,61 @@ jobs:
       contents: read
     
     steps:
+    - name: Verify environment variables
+      run: |
+        required_vars=(
+          "NODE_VERSION"
+          "VPS_SSH_PRIVATE_KEY"
+          "SSH_KNOWN_HOSTS"
+          "VPS_HOST"
+          "VPS_USER"
+          "CLOUDINARY_CLOUD_NAME"
+          "CLOUDINARY_API_KEY"
+          "CLOUDINARY_API_SECRET"
+          "PORT"
+          "VPS_PROJECT_PATH"
+          "PM2_APP_NAME"
+          "PM2_COMMAND"
+          "NVM_NODE_PATH"
+          "NVM_NPM_PATH"
+          "NVM_PM2_PATH"
+          "FRONTEND_URL"
+          "FRONTEND_DEV_URL"
+          "JWT_SECRET"
+        )
+        
+        missing_vars=()
+        for var in "${required_vars[@]}"; do
+          if [ -z "${!var}" ]; then
+            missing_vars+=("$var")
+          fi
+        done
+        
+        if [ ${#missing_vars[@]} -ne 0 ]; then
+          echo "Error: Missing required environment variables:"
+          printf '%s\n' "${missing_vars[@]}"
+          exit 1
+        fi
+      env:
+        NODE_VERSION: ${{ secrets.NODE_VERSION }}
+        VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+        SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+        CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+        CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+        PORT: ${{ secrets.PORT }}
+        VPS_PROJECT_PATH: ${{ secrets.VPS_PROJECT_PATH }}
+        PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
+        PM2_COMMAND: ${{ secrets.PM2_COMMAND }}
+        NVM_NODE_PATH: ${{ secrets.NVM_NODE_PATH }}
+        NVM_NPM_PATH: ${{ secrets.NVM_NPM_PATH }}
+        NVM_PM2_PATH: ${{ secrets.NVM_PM2_PATH }}
+        FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+        FRONTEND_DEV_URL: ${{ secrets.FRONTEND_DEV_URL }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
     - uses: actions/checkout@v3
     
     - name: Setup Node.js
@@ -26,6 +81,9 @@ jobs:
         echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
         # Add GitHub to known hosts
         ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+        
+    - name: Test SSH connection
+      run: ssh -i ~/.ssh/id_rsa -o BatchMode=yes -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo 'SSH connection successful'"
         
     - name: Deploy to VPS
       env:
