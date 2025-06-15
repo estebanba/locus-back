@@ -3,7 +3,7 @@ import { getDataFile, getWorkData, getWorkItemImages } from '../services/data.se
 import path from 'path';
 
 // List of allowed data file names to prevent arbitrary file access
-const ALLOWED_DATA_FILES = ['projects.json', 'photos.json', 'work.json'];
+const ALLOWED_DATA_FILES = ['projects.json', 'photos.json', 'work.json', 'education.json'];
 
 /**
  * Controller to handle requests for fetching generic JSON data files.
