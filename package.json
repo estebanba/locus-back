@@ -16,13 +16,16 @@
   "license": "ISC",
   "description": "Backend for Locus application",
   "dependencies": {
+    "@types/marked": "^5.0.2",
     "@types/node-fetch": "^2.6.12",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^5.0.1",
+    "gray-matter": "^4.0.3",
     "jsonwebtoken": "^9.0.2",
+    "marked": "^16.0.0",
     "mongoose": "^8.8.0",
     "node-fetch": "^2.7.0"
   },

@@ -10,6 +10,8 @@ import cors from 'cors';
 // Import routes
 import cloudinaryRoutes from './routes/cloudinary.routes';
 import dataRoutes from './routes/data.routes';
+import blogRoutes from './routes/blog.routes';
+import { serveSitemap, serveRobotsTxt } from './controllers/sitemap.controller';
 
 const app: Express = express();
 const port = Number(process.env.PORT) || 7001; // Ensure port is a number
@@ -42,9 +44,17 @@ app.use(cors(corsOptions)); // Enable CORS for specific origins
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
+// Static file serving for blog images
+app.use('/api/blog-images', express.static(path.join(__dirname, 'data', 'blog-images')));
+
 // API Routes
 app.use('/api/cloudinary', cloudinaryRoutes);
 app.use('/api/data', dataRoutes);
+app.use('/api/blog', blogRoutes);
+
+// SEO Routes (sitemap and robots.txt)
+app.get('/sitemap.xml', serveSitemap);
+app.get('/robots.txt', serveRobotsTxt);
 
 // Health check endpoint
 app.get('/api/health', (_req: Request, res: Response) => {
