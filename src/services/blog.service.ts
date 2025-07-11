@@ -133,6 +133,7 @@ export async function getBlogPosts(): Promise<BlogPostSummary[]> {
           image: data.image, // Keep for backward compatibility
           images: data.images || [], // New array structure
           imagesPath: data.imagesPath, // New path structure
+          name: data.name, // For Cloudinary folder path
           excerpt,
           readingTime,
           socialImage: data.socialImage || data.image, // For tooltips
@@ -166,7 +167,6 @@ export async function getBlogPost(slug: string): Promise<BlogPost | null> {
     const fileContent = await fs.readFile(filePath, 'utf-8');
     const { data, content } = matter(fileContent);
 
-    const htmlContent = marked(content);
     const excerpt = data.excerpt || generateExcerpt(content);
     const readingTime = calculateReadingTime(content);
 
@@ -178,19 +178,20 @@ export async function getBlogPost(slug: string): Promise<BlogPost | null> {
       date: data.date,
       tags: data.tags || [],
       image: data.image, // Keep for backward compatibility
-      images: data.images || [], // New array structure
-      imagesPath: data.imagesPath, // New path structure
-      content: htmlContent,
+      images: data.images || [],
+      imagesPath: data.imagesPath,
+      name: data.name, // For Cloudinary folder path
+      content: marked(content) as string,
       excerpt,
       readingTime,
       // SEO fields
       metaTitle: data.metaTitle || data.title,
-      metaDescription: data.metaDescription || excerpt,
+      metaDescription: data.metaDescription || data.description || excerpt,
       canonicalUrl: data.canonicalUrl,
-      socialImage: data.socialImage || data.image,
+      socialImage: data.socialImage || data.image, // Keep for backward compatibility
     } as BlogPost;
   } catch (error) {
-    console.error(`[BlogService] Error reading blog post ${slug}:`, error);
+    console.error(`[BlogService] Error reading blog post for slug '${slug}':`, error);
     return null;
   }
 }

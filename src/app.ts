@@ -44,13 +44,10 @@ app.use(cors(corsOptions)); // Enable CORS for specific origins
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
-// Static file serving for blog images
-app.use('/api/blog-images', express.static(path.join(__dirname, 'data', 'blog-images')));
-
 // API Routes
+app.use('/api/blog', blogRoutes);
 app.use('/api/cloudinary', cloudinaryRoutes);
 app.use('/api/data', dataRoutes);
-app.use('/api/blog', blogRoutes);
 
 // SEO Routes (sitemap and robots.txt)
 app.get('/sitemap.xml', serveSitemap);

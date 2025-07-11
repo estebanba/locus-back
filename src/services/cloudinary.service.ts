@@ -12,25 +12,41 @@ interface CloudinaryResource {
   // Add other properties if they exist on the resource and you need them
 }
 
+interface CacheEntry {
+  images: CloudinaryResource[];
+  timestamp: number;
+}
+
+// In-memory cache
+const imageCache = new Map<string, CacheEntry>();
+const CACHE_DURATION_MS = 10 * 60 * 1000; // 10 minutes
+
 /**
- * Fetches image details from a specified folder in Cloudinary.
+ * Fetches image details from a specified folder in Cloudinary, with caching.
  * @param folderName The name of the folder in Cloudinary.
  * @returns A promise that resolves to an array of CloudinaryResource objects.
  * @throws Error if there's an issue fetching from Cloudinary.
  */
 export const getImagesFromFolder = async (folderName: string): Promise<CloudinaryResource[]> => {
+  const now = Date.now();
+  if (imageCache.has(folderName)) {
+    const cachedEntry = imageCache.get(folderName)!;
+    if (now - cachedEntry.timestamp < CACHE_DURATION_MS) {
+      console.log(`[CloudinaryService] Returning cached images for folder: ${folderName}`);
+      return cachedEntry.images;
+    }
+  }
+
   try {
     console.log(`[CloudinaryService] Fetching images for folder: ${folderName}`);
     const result = await cloudinary.search
       .expression(`folder:${folderName} AND resource_type:image`)
-      .sort_by('public_id', 'desc') // Optional: sort by public_id, created_at, etc.
+      .sort_by('public_id', 'desc')
       .max_results(500)
-      .with_field('context') // Request contextual metadata
+      .with_field('context')
       .execute();
 
-    console.log(`[CloudinaryService] API Result for folder ${folderName}:`, JSON.stringify(result, null, 2));
-
-    if (result && result.resources && result.resources.length > 0) {
+    if (result && result.resources) {
       const images: CloudinaryResource[] = result.resources.map((resource: any) => ({
         public_id: resource.public_id,
         secure_url: resource.secure_url,
@@ -38,27 +54,21 @@ export const getImagesFromFolder = async (folderName: string): Promise<Cloudinar
         height: resource.height,
         format: resource.format,
         created_at: resource.created_at,
-        metadata: resource.context || {} // Include contextual metadata
+        metadata: resource.context || {},
       }));
-      console.log(`[CloudinaryService] Found image details for ${folderName}:`, images.length);
+
+      // Store in cache
+      imageCache.set(folderName, { images, timestamp: now });
+      console.log(`[CloudinaryService] Found and cached ${images.length} image(s) for ${folderName}.`);
       return images;
-    } else {
-      console.log(`[CloudinaryService] No resources found for folder: ${folderName}. Attempting to create folder.`);
-      try {
-        await cloudinary.api.create_folder(folderName);
-        console.log(`[CloudinaryService] Successfully created folder: ${folderName}`);
-        return []; // Return empty array as the folder was just created
-      } catch (creationError) {
-        console.error(`[CloudinaryService] Failed to create folder ${folderName}:`, creationError);
-        // If folder creation fails, we still return an empty array or re-throw depending on desired behavior.
-        // For now, let's just log and return empty, as the initial search also found nothing.
-        return [];
-      }
     }
+
+    // If no resources are found, cache an empty array to prevent repeated calls for empty folders
+    imageCache.set(folderName, { images: [], timestamp: now });
+    console.log(`[CloudinaryService] No resources found for folder: ${folderName}. Cached empty result.`);
+    return [];
   } catch (error) {
     console.error(`[CloudinaryService] Error fetching images from Cloudinary for folder ${folderName}:`, error);
-    // Throw the error to be handled by the controller
-    // This allows the controller to send a more specific error response (e.g., 500)
     if (error instanceof Error) {
       throw new Error(`Cloudinary API error: ${error.message}`);
     }

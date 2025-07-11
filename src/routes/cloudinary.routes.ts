@@ -57,6 +57,6 @@ const router = Router();
  *       500:
  *         description: Error fetching images from Cloudinary.
  */
-router.get(new RegExp('^/images/(.*)$'), listImagesInFolder); // Using a RegExp literal for the route
+router.get(/\/images\/(.+)/, listImagesInFolder);
 
-export default router; 
+export default router;

@@ -5,10 +5,10 @@ author: "Esteban Basili"
 date: "2025-06-19"
 tags: ["data", "BIM", "AEC", "analytics", "information-management"]
 images: []
-imagesPath: "portfolio/blog/"
+imagesPath: "blog/"
+name: "data-comes-before-bim"
 metaTitle: "Data Comes Before BIM - Esteban Basili"
 metaDescription: "Exploring why the AEC industry needs to embrace data thinking over just polished deliverables. How missing feedback loops could transform construction."
-socialImage: "/api/blog-images/data-comes-before-bim.png"
 ---
 
 

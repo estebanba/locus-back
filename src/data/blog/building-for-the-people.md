@@ -5,10 +5,10 @@ author: "Esteban Basili"
 date: "2025-06-17"
 tags: ["systems", "tesla", "AEC", "philosophy", "engineering"]
 images: []
-imagesPath: "portfolio/blog/"
+imagesPath: "blog/"
+name: "building-for-the-people"
 metaTitle: "Building for the People - Esteban Basili"
 metaDescription: "From Tesla's 'building the machine that builds the machine' to enhancing human capabilities in the AEC industry through thoughtful software engineering."
-socialImage: "/api/blog-images/building-for-the-people.png"
 ---
 
 "Building the machine that builds the machine".
