@@ -11,6 +11,8 @@ metaTitle: "The Raw Material of Information - Esteban Basili"
 metaDescription: "Data is the raw material of Information. Just as you wouldn't build your structure with poor quality concrete, you shouldn't make decisions with low-grade data."
 ---
 
+Data is the raw material of Information.
+
 Just as you wouldn't build your structure with poor quality concrete, you shouldn't make decisions with low-grade data.
 
 AEC has relied for too long on little information and gut feelings, gross estimates for the decision making. In face of uncertainty and doubt, professionals are required to have courage, the stakes are big.

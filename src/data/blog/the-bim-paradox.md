@@ -11,6 +11,8 @@ metaTitle: "The BIM Paradox - Esteban Basili"
 metaDescription: "We've digitized tools but not thinking. This is the BIM paradox."
 ---
 
+We've digitized tools but not thinking. This is the BIM paradox.
+
 Without quality data strategies, BIM becomes expensive digital drafting, technology solving the wrong problem.
 
 It is not about better modeling software or faster machines, it is about better data architecture, one that boosts our processes, instead of carrying analog bias into digital systems.
