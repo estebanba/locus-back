@@ -19,8 +19,13 @@ const port = Number(process.env.PORT) || 7001; // Ensure port is a number
 // Define allowed origins
 const allowedOrigins = [
   'https://www.estebanbasili.com', // Production frontend
+  'https://estebanbasili.com', // Production frontend (non-www)
+  process.env.FRONTEND_URL, // As configured in Coolify
   process.env.FRONTEND_LOCAL_URL || 'http://localhost:5173' // Local development frontend
 ].filter(Boolean) as string[];
+
+// Use a Set to store unique origins, preventing duplicates.
+const uniqueAllowedOrigins = [...new Set(allowedOrigins)];
 
 // Middleware
 const corsOptions = {
@@ -30,10 +35,10 @@ const corsOptions = {
   ) {
     // Allow requests with no origin (like mobile apps or curl requests)
     // Or for server-to-server communication if your VITE_API_BASE_URL is the same as backend origin
-    if (!origin || allowedOrigins.includes(origin) || (process.env.NODE_ENV === 'development' && origin === `http://localhost:${port}`)) {
+    if (!origin || uniqueAllowedOrigins.includes(origin) || (process.env.NODE_ENV === 'development' && origin === `http://localhost:${port}`)) {
       callback(null, true);
     } else {
-      console.error("CORS error: Origin not allowed:", origin, "Allowed origins:", allowedOrigins);
+      console.error("CORS error: Origin not allowed:", origin, "Allowed origins:", uniqueAllowedOrigins);
       callback(new Error("Not allowed by CORS"));
     }
   },
