@@ -4,7 +4,7 @@ import {
   getBlogPost, 
   getBlogPostsByTag, 
   getBlogTags 
-} from '../services/blog.service';
+} from '../services/blog.service.js';
 
 /**
  * Controller to handle requests for fetching all blog posts

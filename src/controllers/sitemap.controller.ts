@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { generateSitemap, generateRobotsTxt } from '../services/sitemap.service';
+import { generateSitemap, generateRobotsTxt } from '../services/sitemap.service.js';
 
 /**
  * Controller to serve sitemap.xml

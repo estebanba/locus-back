@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { listImagesInFolder } from '../controllers/cloudinary.controller';
+import { listImagesInFolder } from '../controllers/cloudinary.controller.js';
 
 const router = Router();
 

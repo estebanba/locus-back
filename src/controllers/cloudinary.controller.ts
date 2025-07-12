@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getImagesFromFolder } from '../services/cloudinary.service';
+import { getImagesFromFolder } from '../services/cloudinary.service.js';
 
 /**
  * Controller to handle requests for fetching images from a Cloudinary folder.

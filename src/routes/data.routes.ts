@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { serveDataFile, serveWorkData, serveWorkItemImages } from '../controllers/data.controller';
+import { serveDataFile, serveWorkData, serveWorkItemImages } from '../controllers/data.controller.js';
 
 const router = Router();
 

@@ -1,4 +1,4 @@
-import cloudinary from '../config/cloudinary.config';
+import cloudinary from '../config/cloudinary.config.js';
 
 // Define the expected structure for a Cloudinary resource, similar to frontend's CloudinaryImage
 interface CloudinaryResource {

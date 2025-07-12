@@ -1,5 +1,10 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configure dotenv to load the .env file
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -8,10 +13,10 @@ import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 
 // Import routes
-import cloudinaryRoutes from './routes/cloudinary.routes';
-import dataRoutes from './routes/data.routes';
-import blogRoutes from './routes/blog.routes';
-import { serveSitemap, serveRobotsTxt } from './controllers/sitemap.controller';
+import cloudinaryRoutes from './routes/cloudinary.routes.js';
+import dataRoutes from './routes/data.routes.js';
+import blogRoutes from './routes/blog.routes.js';
+import { serveSitemap, serveRobotsTxt } from './controllers/sitemap.controller.js';
 
 const app: Express = express();
 const port = Number(process.env.PORT) || 7001; // Ensure port is a number

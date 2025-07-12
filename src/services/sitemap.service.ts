@@ -1,4 +1,4 @@
-import { getBlogPosts } from './blog.service';
+import { getBlogPosts } from './blog.service.js';
 
 export interface SitemapUrl {
   url: string;

@@ -4,7 +4,7 @@ import {
   serveBlogPost, 
   serveBlogPostsByTag, 
   serveBlogTags 
-} from '../controllers/blog.controller';
+} from '../controllers/blog.controller.js';
 
 const router = Router();
 

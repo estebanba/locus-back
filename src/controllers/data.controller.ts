@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getDataFile, getWorkData, getWorkItemImages } from '../services/data.service';
+import { getDataFile, getWorkData, getWorkItemImages } from '../services/data.service.js';
 import path from 'path';
 
 // List of allowed data file names to prevent arbitrary file access

@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { getImagesFromFolder } from './cloudinary.service';
+import { getImagesFromFolder } from './cloudinary.service.js';
 import fetch from 'node-fetch';
 
 // Base path for data files - handle both dev and prod correctly
