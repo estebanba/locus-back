@@ -44,20 +44,31 @@ export interface BlogPostSummary {
   socialImage?: string; // For tooltips
 }
 
-// Get the blog directory path
-const getBlogPath = () => {
+// Get the blog directory path with dynamic resolution
+const getBlogPath = async () => {
   const isDevelopment = process.env.NODE_ENV !== 'production';
   if (isDevelopment) {
     return path.join(process.cwd(), 'src', 'data', 'blog');
   }
+  
   // In production, try different paths
   const prodPaths = [
     '/var/www/locus-back/dist/data/blog',
     path.join(process.cwd(), 'dist', 'data', 'blog'),
   ];
 
-  // Return first existing path (we'll validate existence in individual functions)
-  return prodPaths[0]; // Default to first option
+  for (const prodPath of prodPaths) {
+    try {
+      await fs.access(prodPath);
+      console.log(`[BlogService] Found valid blog path: ${prodPath}`);
+      return prodPath;
+    } catch (err) {
+      console.log(`[BlogService] Path ${prodPath} not accessible, trying next...`);
+    }
+  }
+
+  // If no paths work, throw error
+  throw new Error('Could not find valid blog directory in production');
 };
 
 /**
@@ -100,16 +111,9 @@ function generateExcerpt(content: string, maxLength = 160): string {
  * Get all blog post summaries (for listing pages)
  */
 export async function getBlogPosts(): Promise<BlogPostSummary[]> {
-  const blogPath = getBlogPath();
-  
   try {
-    await fs.access(blogPath);
-  } catch {
-    console.warn(`[BlogService] Blog directory not found: ${blogPath}`);
-    return [];
-  }
-
-  try {
+    const blogPath = await getBlogPath();
+    
     const files = await fs.readdir(blogPath);
     const markdownFiles = files.filter(file => file.endsWith('.md'));
 
@@ -153,17 +157,12 @@ export async function getBlogPosts(): Promise<BlogPostSummary[]> {
  * Get a single blog post by slug
  */
 export async function getBlogPost(slug: string): Promise<BlogPost | null> {
-  const blogPath = getBlogPath();
-  const filePath = path.join(blogPath, `${slug}.md`);
-
   try {
+    const blogPath = await getBlogPath();
+    const filePath = path.join(blogPath, `${slug}.md`);
+
     await fs.access(filePath);
-  } catch {
-    console.warn(`[BlogService] Blog post not found: ${filePath}`);
-    return null;
-  }
-
-  try {
+    
     const fileContent = await fs.readFile(filePath, 'utf-8');
     const { data, content } = matter(fileContent);
 
