@@ -26,7 +26,9 @@ const allowedOrigins = [
   'https://www.estebanbasili.com', // Production frontend
   'https://estebanbasili.com', // Production frontend (non-www)
   process.env.FRONTEND_URL, // As configured in Coolify
-  process.env.FRONTEND_LOCAL_URL || 'http://localhost:5173' // Local development frontend
+  process.env.FRONTEND_LOCAL_URL || 'http://localhost:5173', // Local development frontend (default Vite port)
+  'http://localhost:5174', // Alternative common Vite development port
+  'http://localhost:3000', // Alternative React development port
 ].filter(Boolean) as string[];
 
 // Use a Set to store unique origins, preventing duplicates.

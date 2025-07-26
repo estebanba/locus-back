@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getImagesFromFolder } from '../services/cloudinary.service.js';
+import { getImagesFromFolder, getPhotographyImages } from '../services/cloudinary.service.js';
 
 /**
  * Controller to handle requests for fetching images from a Cloudinary folder.
@@ -22,5 +22,22 @@ export const listImagesInFolder = async (req: Request, res: Response): Promise<v
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     // Send a 500 Internal Server Error for actual errors from the service
     res.status(500).json({ message: 'Error fetching images from Cloudinary.', error: errorMessage });
+  }
+};
+
+/**
+ * Controller to handle requests for fetching photography images from nested folder structure.
+ */
+export const listPhotographyImages = async (req: Request, res: Response): Promise<void> => {
+  try {
+    console.log(`Controller: Received request for photography images`);
+    const imageObjects = await getPhotographyImages(); // This is CloudinaryResource[]
+    // Always return 200 OK. If no images, imageObjects will be an empty array.
+    res.status(200).json(imageObjects);
+  } catch (error) {
+    console.error(`Controller: Error fetching photography images:`, error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    // Send a 500 Internal Server Error for actual errors from the service
+    res.status(500).json({ message: 'Error fetching photography images from Cloudinary.', error: errorMessage });
   }
 }; 

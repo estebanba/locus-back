@@ -74,4 +74,96 @@ export const getImagesFromFolder = async (folderName: string): Promise<Cloudinar
     }
     throw new Error('An unknown error occurred while fetching images from Cloudinary.');
   }
+};
+
+/**
+ * Fetches photography images from nested folder structure: photography/YYYY_Topic
+ * @returns A promise that resolves to an array of CloudinaryResource objects with parsed metadata.
+ * @throws Error if there's an issue fetching from Cloudinary.
+ */
+export const getPhotographyImages = async (): Promise<CloudinaryResource[]> => {
+  const now = Date.now();
+  const cacheKey = 'photography_all';
+  
+  if (imageCache.has(cacheKey)) {
+    const cachedEntry = imageCache.get(cacheKey)!;
+    if (now - cachedEntry.timestamp < CACHE_DURATION_MS) {
+      console.log(`[CloudinaryService] Returning cached photography images`);
+      return cachedEntry.images;
+    }
+  }
+
+  try {
+    console.log(`[CloudinaryService] Fetching all photography images with nested folder structure`);
+    
+    // First, get all folders in the photography directory
+    const foldersResult = await cloudinary.api.sub_folders('photography');
+    
+    if (!foldersResult || !foldersResult.folders) {
+      console.log(`[CloudinaryService] No photography folders found`);
+      imageCache.set(cacheKey, { images: [], timestamp: now });
+      return [];
+    }
+
+    const allImages: CloudinaryResource[] = [];
+    
+    // Process each folder (YYYY_Topic structure)
+    for (const folder of foldersResult.folders) {
+      const folderName = folder.name;
+      const fullFolderPath = `photography/${folderName}`;
+      
+      console.log(`[CloudinaryService] Processing photography folder: ${fullFolderPath}`);
+      
+      // Parse folder name to extract year and topic
+      const folderParts = folderName.split('_');
+      let year = 'Unknown';
+      let topic = 'Unknown';
+      
+      if (folderParts.length >= 2) {
+        year = folderParts[0];
+        topic = folderParts.slice(1).join('_'); // In case topic has underscores
+      }
+      
+      // Fetch images from this specific folder
+      const result = await cloudinary.search
+        .expression(`folder:${fullFolderPath} AND resource_type:image`)
+        .sort_by('public_id', 'desc')
+        .max_results(500)
+        .with_field('context')
+        .execute();
+
+      if (result && result.resources) {
+        const folderImages: CloudinaryResource[] = result.resources.map((resource: any) => ({
+          public_id: resource.public_id,
+          secure_url: resource.secure_url,
+          width: resource.width,
+          height: resource.height,
+          format: resource.format,
+          created_at: resource.created_at,
+          metadata: {
+            ...resource.context,
+            year: year,
+            topic: topic,
+            folder: folderName,
+            category: topic, // Use topic as category for frontend filtering
+          },
+        }));
+        
+        allImages.push(...folderImages);
+        console.log(`[CloudinaryService] Found ${folderImages.length} images in ${fullFolderPath}`);
+      }
+    }
+    
+    // Store in cache
+    imageCache.set(cacheKey, { images: allImages, timestamp: now });
+    console.log(`[CloudinaryService] Found and cached ${allImages.length} total photography images`);
+    return allImages;
+    
+  } catch (error) {
+    console.error(`[CloudinaryService] Error fetching photography images:`, error);
+    if (error instanceof Error) {
+      throw new Error(`Cloudinary API error: ${error.message}`);
+    }
+    throw new Error('An unknown error occurred while fetching photography images from Cloudinary.');
+  }
 }; 
