@@ -154,6 +154,24 @@ export const getPhotographyImages = async (): Promise<CloudinaryResource[]> => {
       }
     }
     
+    // Sort all images by year (newest first) and then by created_at (newest first) within each year
+    allImages.sort((a, b) => {
+      const yearA = parseInt(a.metadata?.year || '0');
+      const yearB = parseInt(b.metadata?.year || '0');
+      
+      // First sort by year (descending - newest first)
+      if (yearA !== yearB) {
+        return yearB - yearA;
+      }
+      
+      // Within same year, sort by created_at (newest first)
+      const dateA = new Date(a.created_at || 0).getTime();
+      const dateB = new Date(b.created_at || 0).getTime();
+      return dateB - dateA;
+    });
+    
+    console.log(`[CloudinaryService] Sorted ${allImages.length} images by year (newest first)`);
+    
     // Store in cache
     imageCache.set(cacheKey, { images: allImages, timestamp: now });
     console.log(`[CloudinaryService] Found and cached ${allImages.length} total photography images`);
