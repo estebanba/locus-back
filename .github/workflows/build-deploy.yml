@@ -13,8 +13,7 @@ name: Build and deploy
 
 on:
   push:
-    # docker-ghcr-deploy: migration test branch — remove before merging
-    branches: [main, docker-ghcr-deploy]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
