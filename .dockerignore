@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+.github
+.env
+.env.*
+!.env.example
+*.log
+cookies.txt
+debug_*.png
+coverage
+src/tests
+src/data/blog-images
